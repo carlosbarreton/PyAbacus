@@ -15,6 +15,20 @@ Port is either closed or disconnected. """
     def __str__(self):
         return self.message
 
+class CommunicationCriticalError(Exception):
+    """ Critical Error. An error ocurred at the communication port.
+Port is either closed or disconnected. """
+
+    def __init__(self, message = "Critical Error. An error ocurred at the communication port. \
+ Port is either closed or disconnected."):
+        self.message = message
+
+    def __repr__(self):
+        return self.message
+
+    def __str__(self):
+        return self.message
+
 class CheckSumError(Exception):
     """ An error ocurred while doing check sum. """
 

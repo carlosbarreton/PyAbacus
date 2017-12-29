@@ -17,7 +17,7 @@ class CommunicationPort(object):
     **Constants**
     """
     BAUDRATE = 115200 #: Default baudrate for the serial port communication
-    TIMEOUT = 0.02 #: Maximum time without answer from the serial port
+    TIMEOUT = 0.03 #: Maximum time without answer from the serial port
     BOUNCE_TIMEOUT = 100 #: Number of times a specific transmition is tried
     PARITY = serial.PARITY_NONE #: Message will not have any parity
     STOP_BITS = serial.STOPBITS_ONE #: Message contains only one stop bit
@@ -43,9 +43,13 @@ class CommunicationPort(object):
         self.beginThread()
 
     def flush(self):
-        self.serial.flushInput()
-        self.serial.flushOutput()
-        self.serial.flush()
+        try:
+            self.serial.flushInput()
+            self.serial.flushOutput()
+            self.serial.flush()
+        except Exception as e:
+            self.stop = True
+            raise CommunicationCriticalError(e)
         sleep(1e-2)
 
     def beginThread(self):
@@ -89,9 +93,21 @@ class CommunicationPort(object):
         Raises:
             PySerialExceptions
         """
-        self.serial.flushInput()
-        self.serial.flush()
-        self.serial.write(content)
+        # self.flush()
+        try:
+            self.serial.flushInput()
+            self.serial.flush()
+            self.serial.write(content)
+        except Exception as e:
+            self.stop = True
+            raise CommunicationCriticalError(e)
+
+    def __read__(self, n):
+        try:
+            return self.serial.read(n)
+        except Exception as e:
+            self.stop = True
+            raise CommunicationCriticalError(e)
 
     def read(self):
         """ Reads a message through the serial port.
@@ -102,21 +118,18 @@ class CommunicationPort(object):
         Raises:
             CommunicationError:
         """
-        try:
-            hexa = [codecs.encode(self.serial.read(1), "hex_codec").decode()]
-            if hexa[0] != "7e":
-                raise CommunicationError()
-            hexa += [codecs.encode(self.serial.read(1), "hex_codec").decode()]
+        hexa = [codecs.encode(self.__read__(1), "hex_codec").decode()]
+        if hexa[0] != "7e":
+            raise CommunicationError()
+        hexa += [codecs.encode(self.__read__(1), "hex_codec").decode()]
 
-            try:
-                N = int(hexa[1], 16)
-            except ValueError:
-                raise CommunicationError()
-            byte = codecs.encode(self.serial.read(N+1), "hex_codec").decode()
-            byte = list(map(''.join, zip(*[iter(byte)]*2)))
-            hexa += byte
-        except Exception as e:
-            raise CommunicationError(e)
+        try:
+            N = int(hexa[1], 16)
+        except ValueError:
+            raise CommunicationError()
+        byte = codecs.encode(self.__read__(N+1), "hex_codec").decode()
+        byte = list(map(''.join, zip(*[iter(byte)]*2)))
+        hexa += byte
         return hexa
 
     def receive(self):
@@ -139,7 +152,11 @@ class CommunicationPort(object):
             channel = int(hexa[3*i], 16)
             value = hexa[3*i+1] + hexa[3*i+2]
             ans.append((channel, value))
-        self.serial.flushOutput()
+        try:
+            self.serial.flushOutput()
+        except Exception as e:
+            raise CommunicationCriticalError(e)
+        # self.flush()
 
         return ans
 
@@ -208,6 +225,7 @@ class CommunicationPort(object):
                 if i == self.bounce_timeout - 1:
                     self.stop = True
                     raise CommunicationError()
+                print("Trial: %d"%(i+1))
         else:
             self.write(content)
             return None

@@ -2,15 +2,7 @@
 
 Written in Python3, Abacus Software relies on the following modules:
 
-Matplotlib
-PySerial
+pyqtgraph
 NumPy
 PyQt5
-threading
-itertools
-codecs
-queue
-time
-sys
-re
-os
+pyserial
