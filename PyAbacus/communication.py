@@ -3,7 +3,7 @@ import codecs
 from time import sleep
 from queue import Queue
 from random import random
-from threading import Thread, Timer
+from threading import Thread, Timer, Event
 import serial.tools.list_ports as find_ports
 
 from .constants import *
@@ -17,12 +17,11 @@ class CommunicationPort(object):
     **Constants**
     """
     BAUDRATE = 115200 #: Default baudrate for the serial port communication
-    TIMEOUT = 0.03 #: Maximum time without answer from the serial port
-    BOUNCE_TIMEOUT = 100 #: Number of times a specific transmition is tried
+    TIMEOUT = 0.04 #: Maximum time without answer from the serial port
+    BOUNCE_TIMEOUT = 20 #: Number of times a specific transmition is tried
     PARITY = serial.PARITY_NONE #: Message will not have any parity
     STOP_BITS = serial.STOPBITS_ONE #: Message contains only one stop bit
     BYTE_SIZE = serial.EIGHTBITS #: One byte = 8 bits
-    MESSAGE_TRIGGER = 1e-6 #: If queue is empty
     TEST_MESSAGE = [START_COMMUNICATION, READ_VALUE, 0x00,
                0x00, 0x00, END_COMMUNICATION]
 
@@ -46,8 +45,7 @@ class CommunicationPort(object):
         try:
             self.serial.flushInput()
             self.serial.flushOutput()
-            self.serial.flush()
-            # sleep(1e-2)
+            # self.serial.flush()
         except Exception as e:
             self.stop = True
             raise CommunicationCriticalError(e)
@@ -153,12 +151,6 @@ class CommunicationPort(object):
             channel = int(hexa[3*i], 16)
             value = hexa[3*i+1] + hexa[3*i+2]
             ans.append((channel, value))
-        # try:
-        #     self.serial.flushOutput()
-        # except Exception as e:
-        #     raise CommunicationCriticalError(e)
-        # self.flush()
-
         return ans
 
     def queueLoop(self):
@@ -169,13 +161,16 @@ class CommunicationPort(object):
             Exception: any type of error withing serial.
         """
         while not self.stop:
-            item = self.queue.get()
-            conf, content, wait_for_answer = item
-            answer = self.internalMessage(content, wait_for_answer) # call function
-            if wait_for_answer:
+            conf, event, wait_for_answer, content = self.queue.get()
+            try:
+                answer = self.internalMessage(content, wait_for_answer) # call function
                 self.answer[conf] = answer
+                event.set()
+            except Exception as e:
+                if event != None:
+                    event.set()
 
-    def message(self, content, wait_for_answer = False, sleep_time = 1e-3):
+    def message(self, content, wait_for_answer = False):
         """ Method to which different instances have access. Instances use this
         method in order to communicate a message 'content' to the serial port.
         The content of the message is added to the queue and waits for an answer
@@ -187,18 +182,13 @@ class CommunicationPort(object):
             CommunicationError: if communication port is closed, and a answer is
             expected.
         """
-
         conf = random()
-        self.queue.put((conf, content, wait_for_answer))
-        if wait_for_answer:
-            while not self.stop:
-                if conf in self.answer:
-                    value = self.answer.pop(conf)
-                    return value
-                sleep(sleep_time)
-            raise CommunicationError()
-        else:
-            return None
+        event = Event()
+        self.queue.put((conf, event, wait_for_answer, content))
+        event.wait()
+        if conf in self.answer:
+            return self.answer.pop(conf)
+        raise CommunicationError()
 
     def internalMessage(self, content, wait_for_answer = False):
         """ Sends a message, and waits for answer.
@@ -210,29 +200,30 @@ class CommunicationPort(object):
         Raises:
             Exception: any type ocurred with during `bounce_timeout`.
         """
-        if wait_for_answer:
-            for i in range(self.bounce_timeout):
-                try:
-                    self.write(content)
+
+        for i in range(self.bounce_timeout):
+            try:
+                self.write(content)
+                if wait_for_answer:
                     answer = self.receive()
                     expected = int(hex(content[-3]).replace('x', '') + hex(content[-2]).replace('x', ''), 16)
                     if expected == 0:
                         expected = 1
                     if expected != len(answer) or content[2] != answer[0][0]:
-                        print("Content:", content, ", Answer:", answer, ", Expected: ", expected)
+                        pass
+                        # print("Content:", content, ", Answer:", answer, ", Expected: ", expected)
                     else:
                         return answer
-                except CommunicationError:
-                    self.flush()
-                except CheckSumError:
-                    self.flush()
-                if i == self.bounce_timeout - 1:
-                    self.stop = True
-                    raise CommunicationError()
-                print("Trial: %d"%(i+1))
-        else:
-            self.write(content)
-            return None
+                else:
+                    return None
+            except CommunicationError:
+                self.flush()
+            except CheckSumError:
+                self.flush()
+            if i == self.bounce_timeout - 1:
+                self.stop = True
+                raise CommunicationError()
+            print("Communication trial: %d"%(i+1))
 
     def testMessageAbacus(self):
         """ Tests whether or not the CommunicationPort corresponds to a Abacus one.
