@@ -47,10 +47,11 @@ class CommunicationPort(object):
             self.serial.flushInput()
             self.serial.flushOutput()
             self.serial.flush()
+            # sleep(1e-2)
         except Exception as e:
             self.stop = True
             raise CommunicationCriticalError(e)
-        sleep(1e-2)
+
 
     def beginThread(self):
         self.thread = Thread(target=self.queueLoop)
@@ -95,9 +96,9 @@ class CommunicationPort(object):
         """
         # self.flush()
         try:
-            self.serial.flushInput()
-            self.serial.flush()
+            # self.serial.flushInput()
             self.serial.write(content)
+            self.serial.flush()
         except Exception as e:
             self.stop = True
             raise CommunicationCriticalError(e)
@@ -152,10 +153,10 @@ class CommunicationPort(object):
             channel = int(hexa[3*i], 16)
             value = hexa[3*i+1] + hexa[3*i+2]
             ans.append((channel, value))
-        try:
-            self.serial.flushOutput()
-        except Exception as e:
-            raise CommunicationCriticalError(e)
+        # try:
+        #     self.serial.flushOutput()
+        # except Exception as e:
+        #     raise CommunicationCriticalError(e)
         # self.flush()
 
         return ans
@@ -215,9 +216,12 @@ class CommunicationPort(object):
                     self.write(content)
                     answer = self.receive()
                     expected = int(hex(content[-3]).replace('x', '') + hex(content[-2]).replace('x', ''), 16)
+                    if expected == 0:
+                        expected = 1
                     if expected != len(answer) or content[2] != answer[0][0]:
-                        continue
-                    return answer
+                        print("Content:", content, ", Answer:", answer, ", Expected: ", expected)
+                    else:
+                        return answer
                 except CommunicationError:
                     self.flush()
                 except CheckSumError:
