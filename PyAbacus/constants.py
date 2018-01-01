@@ -73,15 +73,15 @@ DEFAULT_SAMP = '100 ms'
 SAMP_CUTOFF = 100
 
 MIN_COIN = 5
-MAX_COIN = 1000000
+MAX_COIN = 50000
 DEFAULT_COIN = 5
 STEP_COIN = 5
 
 MIN_DELAY = 0 #: Minimum delay time value.
-MAX_DELAY = 200 #: Maximum delay time value.
+MAX_DELAY = 100 #: Maximum delay time value.
 STEP_DELAY = 5 #: Increase ratio on the delay time value.
 DEFAULT_DELAY = 100 #: Default delay time value (ns).
 MIN_SLEEP = 0 #: Minimum sleep time value.
-MAX_SLEEP = 200 #: Maximum sleep time value.
+MAX_SLEEP = 100 #: Maximum sleep time value.
 STEP_SLEEP = 5 #: Increase ratio on the sleep time value.
-DEFAULT_SLEEP = 25 #: Default sleep time value (ns). 
+DEFAULT_SLEEP = 25 #: Default sleep time value (ns).
