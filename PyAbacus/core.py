@@ -171,12 +171,32 @@ class Experiment(object):
         except Exception as e:
             raise ExperimentError(str(e))
 
-    def delaySweep(self, channel, delay, n):
+    def sleepSweep(self, channel, sleep, n):
         channel = ord(channel) - ord("A")
         detector = self.detectors[channel]
-        detector.setDelay(delay)
+        detector.setSleep(sleep)
         values = []
-        for j in range(n):
-            detector.updateData()
-            values.append(detector.getValue())
+        try:
+            for j in range(n):
+                detector.updateData()
+                values.append(detector.getValue())
+        except Exception as e:
+            raise ExperimentError(str(e))
+
+        return np.mean(values)
+
+    def delaySweep(self, channel1, channel2, delay1, delay2, n):
+        c1 = ord(channel1) - ord("A")
+        c2 = ord(channel2) - ord("A")
+        self.detectors[c1].setDelay(delay1)
+        self.detectors[c2].setDelay(delay2)
+        values = []
+        channel = self.coin_channels[self.coins_dict[channel1 + channel2]]
+        try:
+            for j in range(n):
+                value = channel.updateValues()
+                values.append(value)
+        except Exception as e:
+            raise ExperimentError(str(e))
+
         return np.mean(values)

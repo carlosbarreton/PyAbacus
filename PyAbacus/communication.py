@@ -211,7 +211,6 @@ class CommunicationPort(object):
                         expected = 1
                     if expected != len(answer) or content[2] != answer[0][0]:
                         pass
-                        # print("Content:", content, ", Answer:", answer, ", Expected: ", expected)
                     else:
                         return answer
                 else:
