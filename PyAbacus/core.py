@@ -170,3 +170,13 @@ class Experiment(object):
             self.coinWindow_channel.readValues(values[last + 4:])
         except Exception as e:
             raise ExperimentError(str(e))
+
+    def delaySweep(self, channel, delay, n):
+        channel = ord(channel) - ord("A")
+        detector = self.detectors[channel]
+        detector.setDelay(delay)
+        values = []
+        for j in range(n):
+            detector.updateData()
+            values.append(detector.getValue())
+        return np.mean(values)

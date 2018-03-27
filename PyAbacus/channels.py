@@ -262,4 +262,4 @@ class DataChannel(object):
             list: containing integer representations of hexadecimal values.
         """
         return [START_COMMUNICATION, READ_VALUE,
-                self.channels[1].address, 0x00, 0x01, END_COMMUNICATION]
+                self.channels[1].address, 0x00, 0x02, END_COMMUNICATION]
