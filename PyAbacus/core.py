@@ -180,6 +180,7 @@ class Experiment(object):
             for j in range(n):
                 detector.updateData()
                 values.append(detector.getValue())
+                sleep(self.getSamplingValue()/1e9)
         except Exception as e:
             raise ExperimentError(str(e))
 
@@ -196,6 +197,7 @@ class Experiment(object):
             for j in range(n):
                 value = channel.updateValues()
                 values.append(value)
+                sleep(self.getSamplingValue()/1e9)
         except Exception as e:
             raise ExperimentError(str(e))
 
