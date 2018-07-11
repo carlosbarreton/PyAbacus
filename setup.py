@@ -1,12 +1,12 @@
 import os
-import PyAbacus as pa
+import pyAbacus as pa
 from setuptools import setup
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name = "PyAbacus",
+    name = "pyAbacus",
     version = pa.__version__,
     author = "Juan Barbosa",
     author_email = "js.barbosa10@uniandes.edu.co",
@@ -14,7 +14,7 @@ setup(
     license = "GPL",
     keywords = "example documentation tutorial",
     url = "https://github.com/Tausand-dev/ReimaginedQuantum",
-    packages=['PyAbacus'],
+    packages=['pyAbacus'],
     install_requires=['numpy', 'pyserial'],
     long_description=read('README'),
     classifiers=[

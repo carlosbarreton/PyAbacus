@@ -177,9 +177,9 @@ class Experiment(object):
         detector.setSleep(sleep_time)
         try:
             for j in range(n):
+                sleep(self.getSamplingValue()*self.BASE_SAMPLING)
                 detector.updateData()
                 yield detector.getValue()
-                sleep(self.getSamplingValue()*self.BASE_SAMPLING)
 
         except Exception as e:
             raise ExperimentError(str(e))
@@ -192,8 +192,8 @@ class Experiment(object):
         channel = self.coin_channels[self.coins_dict[channel1 + channel2]]
         try:
             for j in range(n):
-                yield channel.updateValues()
                 sleep(self.getSamplingValue()*self.BASE_SAMPLING)
+                yield channel.updateValues()
 
         except Exception as e:
             raise ExperimentError(str(e))
