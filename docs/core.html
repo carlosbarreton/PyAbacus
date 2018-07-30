@@ -1,0 +1,378 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pyAbacus.core &mdash; PyAbacus 1.0.5 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="pyAbacus.exceptions" href="exceptions.html" />
+    <link rel="prev" title="Welcome to pyAbacus’s documentation!" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> PyAbacus
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">pyAbacus.core</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="exceptions.html">pyAbacus.exceptions</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="constants.html">pyAbacus.constants</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">PyAbacus</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>pyAbacus.core</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/core.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-pyAbacus.core">
+<span id="pyabacus-core"></span><h1>pyAbacus.core<a class="headerlink" href="#module-pyAbacus.core" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="pyAbacus.core.AbacusSerial">
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">AbacusSerial</code><span class="sig-paren">(</span><em>port</em>, <em>bounce_timeout=20</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds a serial port from pyserial.</p>
+<dl class="method">
+<dt id="pyAbacus.core.AbacusSerial.flush">
+<code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.flush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.AbacusSerial.getIdn">
+<code class="descname">getIdn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.getIdn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.AbacusSerial.readSerial">
+<code class="descname">readSerial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.readSerial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.AbacusSerial.writeSerial">
+<code class="descname">writeSerial</code><span class="sig-paren">(</span><em>command</em>, <em>address</em>, <em>data_u16</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.writeSerial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyAbacus.core.CountersValues">
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">CountersValues</code><span class="sig-paren">(</span><em>n_channels</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pyAbacus.core.CountersValues.getCountersID">
+<code class="descname">getCountersID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getCountersID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.CountersValues.getTimeLeft">
+<code class="descname">getTimeLeft</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getTimeLeft" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.CountersValues.getValue">
+<code class="descname">getValue</code><span class="sig-paren">(</span><em>channel</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.CountersValues.setValueFromArray">
+<code class="descname">setValueFromArray</code><span class="sig-paren">(</span><em>address</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.setValueFromArray" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyAbacus.core.Settings2Ch">
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">Settings2Ch</code><a class="headerlink" href="#pyAbacus.core.Settings2Ch" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pyAbacus.core.Settings2Ch.getAddressAndValue">
+<code class="descname">getAddressAndValue</code><span class="sig-paren">(</span><em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings2Ch.getAddressAndValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings2Ch.getSetting">
+<code class="descname">getSetting</code><span class="sig-paren">(</span><em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings2Ch.getSetting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings2Ch.setSetting">
+<code class="descname">setSetting</code><span class="sig-paren">(</span><em>setting</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings2Ch.setSetting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings2Ch.setValueFromArray">
+<code class="descname">setValueFromArray</code><span class="sig-paren">(</span><em>address</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings2Ch.setValueFromArray" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.close">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">close</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.dataArraysToCounters">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">dataArraysToCounters</code><span class="sig-paren">(</span><em>addresses</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.dataArraysToCounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.dataArraysToSettings">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">dataArraysToSettings</code><span class="sig-paren">(</span><em>addresses</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.dataArraysToSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.dataStreamToDataArrays">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">dataStreamToDataArrays</code><span class="sig-paren">(</span><em>input_string</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.dataStreamToDataArrays" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.findDevices">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">findDevices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.findDevices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.getAllCounters">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getAllCounters</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getAllCounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.getAllSettings">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getAllSettings</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getAllSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.getCountersID">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getCountersID</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getCountersID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.getIdn">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getIdn</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getIdn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.getSetting">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getSetting</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>setting</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getSetting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.getTimeLeft">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getTimeLeft</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getTimeLeft" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.open">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">open</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.open" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.readSerial">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">readSerial</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.readSerial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.setAllSettings">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">setAllSettings</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>new_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.setAllSettings" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.setSetting">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">setSetting</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>setting</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.setSetting" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.writeSerial">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">writeSerial</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>command</em>, <em>address</em>, <em>data_u16</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.writeSerial" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="exceptions.html" class="btn btn-neutral float-right" title="pyAbacus.exceptions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to pyAbacus’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, Tausand Electronica.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'1.0.5',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
