@@ -1,199 +1,287 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+import serial
+import serial.tools.list_ports as find_ports
 
-"""
-*Required modules*
-"""
 from itertools import combinations
-from time import sleep, localtime, strftime, time, asctime
 
-#################
-import numpy as np
-#################
-
-#################
-from .channels import *
-from .constants import *
+from .constants import TIMEOUT, BAUDRATE, START_COMMUNICATION, READ_VALUE, WRITE_VALUE, END_COMMUNICATION, BOUNCE_TIMEOUT
+from .constants import CURRENT_OS, ABACUS_SERIALS, TEST_MESSAGE, TEST_ANSWER, ADDRESS_DIRECTORY, COUNTERS_VALUES, SETTINGS
 from .exceptions import *
-#################
 
-class Detector(object):
-    """ Implements a detector, an object representation of multiple memory addresses.
-    A detector is made of one data channel and two timer channels.
+def open(abacus_port):
+    global ABACUS_SERIALS
+    if abacus_port in ABACUS_SERIALS.keys():
+        close(abacus_port)
+    serial = AbacusSerial(abacus_port)
+    ABACUS_SERIALS[abacus_port] = serial
 
-    **Constants**
-    """
-    BASE_DELAY = 1e-9 #: Default channnel delay time (seconds)
-    BASE_SLEEP = 1e-9 #: Default channel sleep time (seconds)
-    def __init__(self, identifier, port, data_interval = 100, timer_check_interval = 1000):
-        self.identifier = identifier
-        self.name = "Detector %s"%self.identifier
-        self.port = port
-        self.data_channel = DataChannel("counts%s"%self.identifier, self.port)
-        self.delay_channel = TimerChannel("delay%s"%self.identifier, self.port, self.BASE_DELAY)
-        self.sleep_channel = TimerChannel("sleepTime%s"%self.identifier, self.port, self.BASE_SLEEP)
-        self.first_data_address = self.data_channel.channels[1].address
-        self.first_timer_address = self.delay_channel.first_address
-        self.current_data = 0
+def close(abacus_port):
+    global ABACUS_SERIALS
+    if abacus_port in ABACUS_SERIALS.keys():
+        try:
+            ABACUS_SERIALS[abacus_port].close()
+        except Exception as e:
+            print(e)
+        del ABACUS_SERIALS[abacus_port]
 
-    def readValues(self, values):
-        """ Reads incoming values at the data channel."""
-        self.data_channel.readValues(values)
+def writeSerial(abacus_port, command, address, data_u16):
+    global ABACUS_SERIALS
+    ABACUS_SERIALS[abacus_port].writeSerial(command, address, data_u16)
 
-    def getTimerValues(self):
-        """ Gets the values at each timer channel.
+def readSerial(abacus_port):
+    global ABACUS_SERIALS
+    return ABACUS_SERIALS[abacus_port].readSerial()
 
-        Returns:
-            tuple: each value in a position of the tuple..
-        """
-        return self.delay_channel.value, self.sleep_channel.value
+def dataStreamToDataArrays(input_string):
+    test = sum(input_string[2:]) & 0xFF # 8 bit
+    if test != 0xFF:
+        raise(CheckSumError())
+    n = input_string[1]
+    chuncks = input_string[2 : -1] # (addr & MSB & LSB)^n
+    chuncks = [chuncks[i:i + 3] for i in range(0, n, 3)]
+    addresses = [chunck[0] for chunck in chuncks]
+    data = [(chunck[1] << 8) | (chunck[2]) for chunck in chuncks]
 
-    def getValue(self):
-        """ Stores and returns the current value of the data channel.
+    return addresses, data
 
-        Returns:
-            int: current value at the data channel.
-        """
-        self.current_data = self.data_channel.getValue()
-        return self.current_data
+def dataArraysToCounters(addresses, data):
+    global COUNTERS_VALUES
+    for i in range(len(addresses)):
+        COUNTERS_VALUES.setValueFromArray(addresses[i], data[i])
+    return COUNTERS_VALUES
 
-    def updateData(self):
-        """ Stores a fresh value of the data channel."""
-        self.current_data = self.data_channel.updateValues()
+def dataArraysToSettings(addresses, data):
+    global SETTINGS
+    for i in range(len(addresses)):
+        SETTINGS.setValueFromArray(addresses[i], data[i])
+    return SETTINGS
 
-    def setTimersValues(self, values):
-        """ Sets the incoming values in each timer channel."""
-        self.delay_channel.readValues(values[:4])
-        self.sleep_channel.readValues(values[4:])
+def getAllCounters(abacus_port):
+    global COUNTERS_VALUES
+    writeSerial(abacus_port, READ_VALUE, 24, 8)
+    data = readSerial(abacus_port)
+    array, datas = dataStreamToDataArrays(data)
+    dataArraysToCounters(array, datas)
+    return COUNTERS_VALUES, COUNTERS_VALUES.getCountersID()
 
-    def setDelay(self, value):
-        """ Saves the incoming value, writes it to device and verifies writing. """
-        self.delay_channel.setWriteValue(value)
+def getAllSettings(abacus_port):
+    global SETTINGS
+    writeSerial(abacus_port, READ_VALUE, 0, 24)
+    data = readSerial(abacus_port)
+    array, datas = dataStreamToDataArrays(data)
+    dataArraysToSettings(array, datas)
+    return SETTINGS
 
-    def setSleep(self, value):
-        self.sleep_channel.setWriteValue(value)
+def getSetting(abacus_port, setting):
+    global SETTINGS
 
-    def setTimes(self, delay, sleep):
-        self.setDelay(delay)
-        self.setSleep(sleep)
+    addr, val = SETTINGS.getAddressAndValue(setting + "_ns")
+    writeSerial(abacus_port, READ_VALUE, addr, 4)
 
-class Experiment(object):
-    """
-    Constants
-    """
-    BASE_SAMPLING = 1e-3 #: Default sampling time (seconds)
-    BASE_COINWIN = 1e-9 #: Default coincidence window (seconds)
-    global READ_VALUE, WRITE_VALUE, START_COMMUNICATION, END_COMMUNICATION
-    def __init__(self, port, number_detectors = 2):
-        self.port = port
-        self.number_detectors = number_detectors
-        self.detector_identifiers = [chr(i + ord('A')) for i in range(self.number_detectors)]
-        self.coins_identifiers = self.getCombinations()
-        self.number_coins = len(self.coins_identifiers)
-        self.detector_dict = {self.detector_identifiers[i]: i for i in range(self.number_detectors)}
-        self.coins_dict = {self.coins_identifiers[i]: i for i in range(self.number_coins)}
-        self.detectors = [Detector(identifier, self.port) for identifier in self.detector_identifiers]
-        self.coin_channels = [DataChannel("coincidences%s"%identifier, self.port) for identifier in self.coins_identifiers]
+    data = readSerial(abacus_port)
+    array, datas = dataStreamToDataArrays(data)
+    dataArraysToSettings(array, datas)
 
-        self.sampling_channel = TimerChannel("samplingTime", port, self.BASE_SAMPLING)
-        self.coinWindow_channel = TimerChannel("coincidenceWindow", port, self.BASE_COINWIN)
+    return SETTINGS.getSetting(setting)
 
-    def constructMessage(self, data = True):
-        if data:
-            number = "%08X"%(2*(self.number_detectors + self.number_coins))
-            first = self.detectors[0].first_data_address
+def getIdn(abacus_port):
+    global ABACUS_SERIALS
+    return ABACUS_SERIALS[abacus_port].getIdn()
+
+def getCountersID(abacus_port):
+    global SETTINGS
+
+    writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["measure_number"], 0)
+    data = readSerial(abacus_port)
+    array, datas = dataStreamToDataArrays(data)
+    dataArraysToSettings(array, datas)
+
+    return SETTINGS.getCountersID()
+
+def getTimeLeft(abacus_port):
+    global SETTINGS
+
+    writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["time_to_next_sample"], 0)
+    data = readSerial(abacus_port)
+    array, datas = dataStreamToDataArrays(data)
+    dataArraysToSettings(array, datas)
+
+    return SETTINGS.getTimeLeft()
+
+def setSetting(abacus_port, setting, value):
+    global SETTINGS
+    SETTINGS.setSetting(setting, value)
+    suffix = ["_ns", "_us", "_ms", "_s"]
+    for s in suffix:
+        addr, val = SETTINGS.getAddressAndValue(setting + s)
+        writeSerial(abacus_port, WRITE_VALUE, addr, val)
+
+def setAllSettings(abacus_port, new_settings):
+    global SETTINGS
+    if type(new_settings) is Settings2Ch:
+        SETTINGS = new_settings
+        for setting in SETTINGS.addresses.values():
+            addr, val = SETTINGS.getAddressAndValue(setting)
+            writeSerial(abacus_port, WRITE_VALUE, addr, val)
+    else:
+        raise(Exception("New settings are not a valid type."))
+
+def findDevices():
+    global CURRENT_OS
+    ports_objects = list(find_ports.comports())
+    ports = {}
+    for i in range(len(ports_objects)):
+        port = ports_objects[i]
+        try:
+            serial = AbacusSerial(port.device)
+            if CURRENT_OS == "win32":
+                ports["%s"%port.description] = port.device
+            else:
+                ports["%s (%s)"%(port.description, port.device)] = port.device
+            serial.close()
+        except Exception as e:
+            print(port.device, e)
+
+    return ports, len(ports)
+
+class CountersValues(object):
+    def __init__(self, n_channels):
+        letters = [chr(ord('A') + i) for i in range(n_channels)]
+
+        channels = []
+        for i in range(1, n_channels + 1):
+            for item in combinations("".join(letters), i):
+                item = "".join(item)
+                channels.append(item)
+
+        for c in channels:
+            setattr(self, "%s_LSB"%c, 0)
+            setattr(self, "%s_MSB"%c, 0)
+
+        self.addresses = {}
+
+        for key in list(ADDRESS_DIRECTORY.keys()):
+            for c in channels:
+                if "counts_%s"%c in key:
+                    addr = ADDRESS_DIRECTORY[key]
+                    self.addresses[addr] = key.replace("counts_", "")
+
+        self.addresses[30] = 'measure_number'
+        self.addresses[31] = 'time_to_next_sample'
+        self.measure_number = 0
+        self.time_to_next_sample = 0
+
+    def setValueFromArray(self, address, value):
+        setattr(self, self.addresses[address], value)
+
+    def getValue(self, channel):
+        msb = getattr(self, "%s_MSB" % channel) << 16
+        lsb = getattr(self, "%s_LSB" % channel)
+
+        return msb | lsb
+
+    def getCountersID(self):
+        return self.measure_number
+
+    def getTimeLeft(self):
+        return self.time_to_next_sample
+
+class Settings2Ch(object):
+    def __init__(self):
+        channels = ['delay_A', 'delay_B', 'sleep_A', 'sleep_B', 'coincidence_window', 'sampling']
+        names = []
+        for c in channels:
+            names += ["%s_ns"%c, "%s_us"%c, "%s_ms"%c, "%s_s"%c]
+        for c in names:
+            setattr(self, c, 0)
+
+        self.addresses = {}
+
+        for key in list(ADDRESS_DIRECTORY.keys()):
+            for c in channels:
+                if c in key:
+                    addr = ADDRESS_DIRECTORY[key]
+                    self.addresses[addr] = key
+
+    def setValueFromArray(self, address, value):
+        setattr(self, self.addresses[address], value)
+
+    def setSetting(self, setting, value):
+        getattr(self, setting + "_ns")
+        getattr(self, setting + "_us")
+        getattr(self, setting + "_ms")
+        getattr(self, setting + "_s")
+
+        if "sampling" in setting:
+            setattr(self, setting + "_ns", 0)
+            setattr(self, setting + "_us", 0)
+            setattr(self, setting + "_ms", value % 1000)
+            setattr(self, setting + "_s", value // 1000)
+
         else:
-            number = "%08X"%(self.coinWindow_channel.last_address - self.detectors[0].first_timer_address +1)
-            first = self.detectors[0].first_timer_address
+            setattr(self, setting + "_ns", value % 1000)
+            value = value // 1000
+            setattr(self, setting + "_us", value % 1000)
+            value = value // 1000
+            setattr(self, setting + "_ms", value % 1000)
+            setattr(self, setting + "_s", value // 1000)
 
-        msb = int(number[:4], 16)
-        lsb = int(number[4:], 16)
-        return [START_COMMUNICATION, READ_VALUE, first,
-                msb, lsb, END_COMMUNICATION]
+    def getSetting(self, timer):
+        ns = getattr(self, "%s_ns" % timer)
+        us = getattr(self, "%s_us" % timer)
+        ms = getattr(self, "%s_ms" % timer)
+        s = getattr(self, "%s_s" % timer)
+        if timer == "sampling": # ms
+            return int(ms + s*1e3)
+        else: # ns
+            return int(ns + (us * 1e3) + (ms * 1e6) + (s * 1e9))
 
-    def currentValues(self):
-        try:
-            ans = self.port.message(self.constructMessage(), wait_for_answer = True)
-            detector_values = []
-            coin_values = []
-            for i in range(self.number_detectors):
-                self.detectors[i].readValues(ans[2*i:2*i+2])
-                detector_values.append(self.detectors[i].getValue())
-            for j in range(self.number_coins):
-                self.coin_channels[j].readValues(ans[2*(i+j+1):2*(i+j+1)+2])
-                coin_values.append(self.coin_channels[j].getValue())
-        except Exception as e:
-            raise ExperimentError(str(e))
-        return time(), detector_values, coin_values
+    def getAddressAndValue(self, timer):
+        return ADDRESS_DIRECTORY[timer], getattr(self, timer)
 
-    def setSampling(self, value):
-        try:
-            self.sampling_channel.setWriteValue(value)
-        except Exception as e:
-            raise ExperimentError(str(e))
+class AbacusSerial(serial.Serial):
+    """
+        Builds a serial port from pyserial.
+    """
+    def __init__(self, port, bounce_timeout = BOUNCE_TIMEOUT):
+        super(AbacusSerial, self).__init__(port, baudrate = BAUDRATE, timeout = TIMEOUT)
+        self.bounce_timeout = bounce_timeout
+        self.flush()
+        # self.testAbacus()
 
-    def setCoinWindow(self, value):
-        try:
-            self.coinWindow_channel.setWriteValue(value)
-        except Exception as e:
-            raise ExperimentError(str(e))
+    def flush(self):
+        self.flushInput()
+        self.flushOutput()
 
-    def getSamplingValue(self):
-        return self.sampling_channel.value
+    def getIdn(self):
+        """ Tests whether or not the CommunicationPort corresponds to a Abacus one.
 
-    def getCoinwinValue(self):
-        return self.coinWindow_channel.value
+            Returns:
+            boolean: True if it does, False otherwise.
+        """
+        self.write(TEST_MESSAGE)
+        ans = self.read(20)
 
-    def getDetectorsTimersValues(self):
-        return [detector.getTimerValues() for detector in self.detectors]
+    def writeSerial(self, command, address, data_u16):
+        if data_u16 > 0xFF:
+            msb = data_u16 >> 8
+            lsb = data_u16 & 0xFF
+        else:
+            msb = 0
+            lsb = data_u16 & 0xFF
+        self.write([START_COMMUNICATION, command, address, msb, lsb, END_COMMUNICATION])
 
-    def getCombinations(self):
-        letters = "".join(self.detector_identifiers)
-        coins = []
-        for i in range(1, self.number_detectors):
-            coins += list(combinations(letters, i+1))
+    def readSerial(self):
+        for i in range(BOUNCE_TIMEOUT):
+            if self.read() == 0x7E:
+                break
+        if i == BOUNCE_TIMEOUT - 1:
+            raise(TimeOutError())
 
-        return ["".join(values) for values in coins]
+        numbytes = self.read()
+        bytes_read = self.read(numbytes)
+        checksum = self.read()
 
-    def periodicCheck(self):
-        try:
-            message = self.constructMessage(data = False)
-            values = self.port.message(message, wait_for_answer = True)
-            for i in range(self.number_detectors):
-                begin_delay = 4*i
-                delay = values[begin_delay: begin_delay + 4]
-                sleep = values[begin_delay + 8: begin_delay + 12]
-                value = delay + sleep
-                self.detectors[i].setTimersValues(value)
-            last = 8*(i+1)
-            self.sampling_channel.readValues(values[last: 4 + last])
-            self.coinWindow_channel.readValues(values[last + 4:])
-        except Exception as e:
-            raise ExperimentError(str(e))
+        return [0x7E, numbytes] +  bytes_read + [checksum], numbytes + 3
 
-    def sleepSweep(self, channel, sleep_time, n):
-        channel = ord(channel) - ord("A")
-        detector = self.detectors[channel]
-        detector.setSleep(sleep_time)
-        try:
-            for j in range(n):
-                sleep(self.getSamplingValue()*self.BASE_SAMPLING)
-                detector.updateData()
-                yield detector.getValue()
-
-        except Exception as e:
-            raise ExperimentError(str(e))
-
-    def delaySweep(self, channel1, channel2, delay1, delay2, n):
-        c1 = ord(channel1) - ord("A")
-        c2 = ord(channel2) - ord("A")
-        self.detectors[c1].setDelay(delay1)
-        self.detectors[c2].setDelay(delay2)
-        channel = self.coin_channels[self.coins_dict[channel1 + channel2]]
-        try:
-            for j in range(n):
-                sleep(self.getSamplingValue()*self.BASE_SAMPLING)
-                yield channel.updateValues()
-
-        except Exception as e:
-            raise ExperimentError(str(e))
+COUNTERS_VALUES = CountersValues(2)
+SETTINGS = Settings2Ch()

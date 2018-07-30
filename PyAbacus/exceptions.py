@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-class CommunicationError(Exception):
-    """ Fatal Error. An error ocurred at the communication port.
-Port is either closed or disconnected. """
-
-    def __init__(self, message = "Fatal Error. An error ocurred at the communication port. \
- Port is either closed or disconnected."):
+class BaseError(Exception):
+    def __init__(self, message):
         self.message = str(message)
 
     def __repr__(self):
@@ -15,49 +11,20 @@ Port is either closed or disconnected. """
     def __str__(self):
         return self.message
 
-class CommunicationCriticalError(Exception):
-    """ Critical Error. An error ocurred at the communication port.
-Port is either closed or disconnected. """
-
-    def __init__(self, message = "Critical Error. An error ocurred at the communication port. \
- Port is either closed or disconnected."):
-        self.message = str(message)
-
-    def __repr__(self):
-        return self.message
-
-    def __str__(self):
-        return self.message
-
-class CheckSumError(Exception):
+class CheckSumError(BaseError):
     """ An error ocurred while doing check sum. """
 
-    def __init__(self, message = "An error ocurred while doing check sum."):
-        self.message = str(message)
+    def __init__(self):
+        super(CheckSumError, self).__init__("An error ocurred while doing check sum.")
 
-    def __repr__(self):
-        return self.message
+class AbacusError(BaseError):
+    """ An unexpected error ocurred. """
 
-    def __str__(self):
-        return self.message
+    def __init__(self, message = ""):
+        super(AbacusError, self).__init__("An unexpected error ocurred " + message)
 
-class ExperimentError(Exception):
-    """ An error ocurred while in the experiment. """
+class TimeOutError(BaseError):
+    """ A time out error ocurred """
 
-    def __init__(self, message = "An error ocurred in the experiment."):
-        self.message = str(message)
-    def __repr__(self):
-        return self.message
-    def __str__(self):
-        return self.message
-
-
-class SavingError(Exception):
-    """ An error ocurred while saving. """
-
-    def __init__(self, message = "An error ocurred while saving."):
-        self.message = str(message)
-    def __repr__(self):
-        return self.message
-    def __str__(self):
-        return self.message
+    def __init__(self, message = ""):
+        super(TimeOutError, self).__init__("A timeout error ocurred " + message)

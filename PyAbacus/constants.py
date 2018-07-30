@@ -5,43 +5,40 @@ import sys
 
 CURRENT_OS = sys.platform
 
-# if CURRENT_OS == "win32":
-#     from .specialfolders import *
+ADDRESS_DIRECTORY_2CH = {'delay_A_ns': 0,
+           'delay_A_us': 1,
+           'delay_A_ms': 2,
+           'delay_A_s': 3,
+           'delay_B_ns': 4,
+           'delay_B_us': 5,
+           'delay_B_ms': 6,
+           'delay_B_s': 7,
+           'sleep_A_ns': 8,
+           'sleep_A_us': 9,
+           'sleep_A_ms': 10,
+           'sleep_A_s': 11,
+           'sleep_B_ns': 12,
+           'sleep_B_us': 13,
+           'sleep_B_ms': 14,
+           'sleep_B_s': 15,
+           'sampling_ns': 16,
+           'sampling_us': 17,
+           'sampling_ms': 18,
+           'sampling_s': 19,
+           'coincidence_window_ns': 20,
+           'coincidence_window_us': 21,
+           'coincidence_window_ms': 22,
+           'coincidence_window_s': 23,
+           'counts_A_LSB': 24,
+           'counts_A_MSB': 25,
+           'counts_B_LSB': 26,
+           'counts_B_MSB': 27,
+           'counts_AB_LSB': 28,
+           'counts_AB_MSB': 29,
+           'measure_number': 30,
+           'time_to_next_sample': 31} #: Memory addresses
 
-ADDRESS_2CH = {'delayA_ns': 0,
-           'delayA_us': 1,
-           'delayA_ms': 2,
-           'delayA_s': 3,
-           'delayB_ns': 4,
-           'delayB_us': 5,
-           'delayB_ms': 6,
-           'delayB_s': 7,
-           'sleepTimeA_ns': 8,
-           'sleepTimeA_us': 9,
-           'sleepTimeA_ms': 10,
-           'sleepTimeA_s': 11,
-           'sleepTimeB_ns': 12,
-           'sleepTimeB_us': 13,
-           'sleepTimeB_ms': 14,
-           'sleepTimeB_s': 15,
-           'samplingTime_ns': 16,
-           'samplingTime_us': 17,
-           'samplingTime_ms': 18,
-           'samplingTime_s': 19,
-           'coincidenceWindow_ns': 20,
-           'coincidenceWindow_us': 21,
-           'coincidenceWindow_ms': 22,
-           'coincidenceWindow_s': 23,
-           'countsA_LSB': 24,
-           'countsA_MSB': 25,
-           'countsB_LSB': 26,
-           'countsB_MSB': 27,
-           'coincidencesAB_LSB': 28,
-           'coincidencesAB_MSB': 29} #: Memory addresses
-
-ADDRESS = ADDRESS_2CH
-
-DELIMITER = ", "
+ADDRESS_DIRECTORY = ADDRESS_DIRECTORY_2CH
 
 READ_VALUE = 0x0e #: Reading operation signal
 WRITE_VALUE = 0x0f #: Writing operation signal
@@ -50,38 +47,42 @@ END_COMMUNICATION = 0x04 #: End of message
 MAXIMUM_WRITING_TRIES = 20 #: Number of tries done to write a value
 
 """
-main
+    settings
 """
-coeff = [2, 5, 10]
-SAMP_VALUES = []
-for i in range(0, 6):
-	for c in coeff:
-		j = i%3
-		value = c*10**j
-		unit = 's'
-		if i == 2 and c == 10:
-			value *= 1/1000
-		elif i < 3:
-			unit = 'ms'
 
-		SAMP_VALUES.append("%d %s"%(value, unit))
+COINCIDENCE_WINDOW_MINIMUM_VALUE = 5 #: Minimum coincidence window time value (ns).
+COINCIDENCE_WINDOW_MAXIMUM_VALUE = 50000 #: Maximum coincidence window time value (ns).
+COINCIDENCE_WINDOW_STEP_VALUE = 5 #: Increase ratio on the coincidence window time value (ns).
+COINCIDENCE_WINDOW_DEFAULT_VALUE = 5 #: Default coincidence window time value (ns).
 
-SAMP_VALUES.insert(0, "1 ms")
-SAMP_VALUES = SAMP_VALUES[::-1] # inverted
+DELAY_MINIMUM_VALUE = 0 #: Minimum delay time value (ns).
+DELAY_MAXIMUM_VALUE = 100 #: Maximum delay time value (ns).
+DELAY_STEP_VALUE = 5 #: Increase ratio on the delay time value (ns).
+DELAY_DEFAULT_VALUE = 100 #: Default delay time value (ns).
 
-DEFAULT_SAMP = '100 ms'
-SAMP_CUTOFF = 100
+SLEEP_MINIMUM_VALUE = 0 #: Minimum sleep time value (ns).
+SLEEP_MAXIMUM_VALUE = 100 #: Maximum sleep time value (ns).
+SLEEP_STEP_VALUE = 5 #: Increase ratio on the sleep time value (ns).
+SLEEP_DEFAULT_VALUE = 25 #: Default sleep time value (ns).
 
-MIN_COIN = 5
-MAX_COIN = 50000
-DEFAULT_COIN = 5
-STEP_COIN = 5
+coeff = [1, 2, 5]
+SAMPLING_VALUES = [int(c*10**i) for i in range(6) for c in coeff] + [int(1e6)] #: From (1, 2, 5) ms to 1000 s
+SAMPLING_DEFAULT_VALUE = 100
 
-MIN_DELAY = 0 #: Minimum delay time value.
-MAX_DELAY = 100 #: Maximum delay time value.
-STEP_DELAY = 5 #: Increase ratio on the delay time value.
-DEFAULT_DELAY = 100 #: Default delay time value (ns).
-MIN_SLEEP = 0 #: Minimum sleep time value.
-MAX_SLEEP = 100 #: Maximum sleep time value.
-STEP_SLEEP = 5 #: Increase ratio on the sleep time value.
-DEFAULT_SLEEP = 25 #: Default sleep time value (ns).
+SETTINGS = None
+
+COUNTERS_VALUES = None
+
+"""
+    PORT
+"""
+
+BAUDRATE = 115200 #: Default baudrate for the serial port communication
+TIMEOUT = 0.04 #: Maximum time without answer from the serial port
+BOUNCE_TIMEOUT = 20 #: Number of times a specific transmition is tried
+
+TEST_MESSAGE = "*IDN?".encode()
+TEST_ANSWER = "Tausand Abacus"
+
+
+ABACUS_SERIALS = {}
