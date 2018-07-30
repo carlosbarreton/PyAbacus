@@ -1,4 +1,4 @@
-import PyAbacus as abacus
+import pyAbacus as abacus
 
 ports, n = abacus.findDevices()
 print(ports)

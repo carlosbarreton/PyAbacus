@@ -8,6 +8,8 @@ from .constants import CURRENT_OS, ABACUS_SERIALS, TEST_MESSAGE, TEST_ANSWER, AD
 from .exceptions import *
 
 def open(abacus_port):
+    """
+    """
     global ABACUS_SERIALS
     if abacus_port in ABACUS_SERIALS.keys():
         close(abacus_port)
@@ -15,6 +17,8 @@ def open(abacus_port):
     ABACUS_SERIALS[abacus_port] = serial
 
 def close(abacus_port):
+    """
+    """
     global ABACUS_SERIALS
     if abacus_port in ABACUS_SERIALS.keys():
         try:
@@ -24,14 +28,20 @@ def close(abacus_port):
         del ABACUS_SERIALS[abacus_port]
 
 def writeSerial(abacus_port, command, address, data_u16):
+    """
+    """
     global ABACUS_SERIALS
     ABACUS_SERIALS[abacus_port].writeSerial(command, address, data_u16)
 
 def readSerial(abacus_port):
+    """
+    """
     global ABACUS_SERIALS
     return ABACUS_SERIALS[abacus_port].readSerial()
 
 def dataStreamToDataArrays(input_string):
+    """
+    """
     test = sum(input_string[2:]) & 0xFF # 8 bit
     if test != 0xFF:
         raise(CheckSumError())
@@ -44,18 +54,24 @@ def dataStreamToDataArrays(input_string):
     return addresses, data
 
 def dataArraysToCounters(addresses, data):
+    """
+    """
     global COUNTERS_VALUES
     for i in range(len(addresses)):
         COUNTERS_VALUES.setValueFromArray(addresses[i], data[i])
     return COUNTERS_VALUES
 
 def dataArraysToSettings(addresses, data):
+    """
+    """
     global SETTINGS
     for i in range(len(addresses)):
         SETTINGS.setValueFromArray(addresses[i], data[i])
     return SETTINGS
 
 def getAllCounters(abacus_port):
+    """
+    """
     global COUNTERS_VALUES
     writeSerial(abacus_port, READ_VALUE, 24, 8)
     data = readSerial(abacus_port)
@@ -64,6 +80,8 @@ def getAllCounters(abacus_port):
     return COUNTERS_VALUES, COUNTERS_VALUES.getCountersID()
 
 def getAllSettings(abacus_port):
+    """
+    """
     global SETTINGS
     writeSerial(abacus_port, READ_VALUE, 0, 24)
     data = readSerial(abacus_port)
@@ -72,6 +90,8 @@ def getAllSettings(abacus_port):
     return SETTINGS
 
 def getSetting(abacus_port, setting):
+    """
+    """
     global SETTINGS
 
     addr, val = SETTINGS.getAddressAndValue(setting + "_ns")
@@ -84,10 +104,14 @@ def getSetting(abacus_port, setting):
     return SETTINGS.getSetting(setting)
 
 def getIdn(abacus_port):
+    """
+    """
     global ABACUS_SERIALS
     return ABACUS_SERIALS[abacus_port].getIdn()
 
 def getCountersID(abacus_port):
+    """
+    """
     global SETTINGS
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["measure_number"], 0)
@@ -98,6 +122,8 @@ def getCountersID(abacus_port):
     return SETTINGS.getCountersID()
 
 def getTimeLeft(abacus_port):
+    """
+    """
     global SETTINGS
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["time_to_next_sample"], 0)
@@ -108,6 +134,8 @@ def getTimeLeft(abacus_port):
     return SETTINGS.getTimeLeft()
 
 def setSetting(abacus_port, setting, value):
+    """
+    """
     global SETTINGS
     SETTINGS.setSetting(setting, value)
     suffix = ["_ns", "_us", "_ms", "_s"]
@@ -116,6 +144,8 @@ def setSetting(abacus_port, setting, value):
         writeSerial(abacus_port, WRITE_VALUE, addr, val)
 
 def setAllSettings(abacus_port, new_settings):
+    """
+    """
     global SETTINGS
     if type(new_settings) is Settings2Ch:
         SETTINGS = new_settings
@@ -126,6 +156,8 @@ def setAllSettings(abacus_port, new_settings):
         raise(Exception("New settings are not a valid type."))
 
 def findDevices():
+    """
+    """
     global CURRENT_OS
     ports_objects = list(find_ports.comports())
     ports = {}
@@ -144,6 +176,8 @@ def findDevices():
     return ports, len(ports)
 
 class CountersValues(object):
+    """
+    """
     def __init__(self, n_channels):
         letters = [chr(ord('A') + i) for i in range(n_channels)]
 
@@ -171,21 +205,31 @@ class CountersValues(object):
         self.time_to_next_sample = 0
 
     def setValueFromArray(self, address, value):
+        """
+        """
         setattr(self, self.addresses[address], value)
 
     def getValue(self, channel):
+        """
+        """
         msb = getattr(self, "%s_MSB" % channel) << 16
         lsb = getattr(self, "%s_LSB" % channel)
 
         return msb | lsb
 
     def getCountersID(self):
+        """
+        """
         return self.measure_number
 
     def getTimeLeft(self):
+        """
+        """
         return self.time_to_next_sample
 
 class Settings2Ch(object):
+    """
+    """
     def __init__(self):
         channels = ['delay_A', 'delay_B', 'sleep_A', 'sleep_B', 'coincidence_window', 'sampling']
         names = []
@@ -203,9 +247,13 @@ class Settings2Ch(object):
                     self.addresses[addr] = key
 
     def setValueFromArray(self, address, value):
+        """
+        """
         setattr(self, self.addresses[address], value)
 
     def setSetting(self, setting, value):
+        """
+        """
         getattr(self, setting + "_ns")
         getattr(self, setting + "_us")
         getattr(self, setting + "_ms")
@@ -226,6 +274,8 @@ class Settings2Ch(object):
             setattr(self, setting + "_s", value // 1000)
 
     def getSetting(self, timer):
+        """
+        """
         ns = getattr(self, "%s_ns" % timer)
         us = getattr(self, "%s_us" % timer)
         ms = getattr(self, "%s_ms" % timer)
@@ -236,6 +286,8 @@ class Settings2Ch(object):
             return int(ns + (us * 1e3) + (ms * 1e6) + (s * 1e9))
 
     def getAddressAndValue(self, timer):
+        """
+        """
         return ADDRESS_DIRECTORY[timer], getattr(self, timer)
 
 class AbacusSerial(serial.Serial):
@@ -249,19 +301,20 @@ class AbacusSerial(serial.Serial):
         # self.testAbacus()
 
     def flush(self):
+        """
+        """
         self.flushInput()
         self.flushOutput()
 
     def getIdn(self):
-        """ Tests whether or not the CommunicationPort corresponds to a Abacus one.
-
-            Returns:
-            boolean: True if it does, False otherwise.
+        """
         """
         self.write(TEST_MESSAGE)
         ans = self.read(20)
 
     def writeSerial(self, command, address, data_u16):
+        """
+        """
         if data_u16 > 0xFF:
             msb = data_u16 >> 8
             lsb = data_u16 & 0xFF
@@ -271,6 +324,8 @@ class AbacusSerial(serial.Serial):
         self.write([START_COMMUNICATION, command, address, msb, lsb, END_COMMUNICATION])
 
     def readSerial(self):
+        """
+        """
         for i in range(BOUNCE_TIMEOUT):
             if self.read() == 0x7E:
                 break

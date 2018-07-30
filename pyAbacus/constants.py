@@ -3,7 +3,7 @@
 
 import sys
 
-CURRENT_OS = sys.platform
+CURRENT_OS = sys.platform #: Current operative system
 
 ADDRESS_DIRECTORY_2CH = {'delay_A_ns': 0,
            'delay_A_us': 1,
@@ -46,9 +46,7 @@ START_COMMUNICATION = 0x02 #: Begin message signal
 END_COMMUNICATION = 0x04 #: End of message
 MAXIMUM_WRITING_TRIES = 20 #: Number of tries done to write a value
 
-"""
-    settings
-"""
+
 
 COINCIDENCE_WINDOW_MINIMUM_VALUE = 5 #: Minimum coincidence window time value (ns).
 COINCIDENCE_WINDOW_MAXIMUM_VALUE = 50000 #: Maximum coincidence window time value (ns).
@@ -67,15 +65,16 @@ SLEEP_DEFAULT_VALUE = 25 #: Default sleep time value (ns).
 
 coeff = [1, 2, 5]
 SAMPLING_VALUES = [int(c*10**i) for i in range(6) for c in coeff] + [int(1e6)] #: From (1, 2, 5) ms to 1000 s
-SAMPLING_DEFAULT_VALUE = 100
+SAMPLING_DEFAULT_VALUE = 100 #: Default sampling time value (ms)
 
-SETTINGS = None
+SETTINGS = None #: Global settings variable
 
-COUNTERS_VALUES = None
+COUNTERS_VALUES = None #: Global counters values variable
 
-"""
-    PORT
-"""
+
+
+
+
 
 BAUDRATE = 115200 #: Default baudrate for the serial port communication
 TIMEOUT = 0.04 #: Maximum time without answer from the serial port
@@ -83,6 +82,5 @@ BOUNCE_TIMEOUT = 20 #: Number of times a specific transmition is tried
 
 TEST_MESSAGE = "*IDN?".encode()
 TEST_ANSWER = "Tausand Abacus"
-
 
 ABACUS_SERIALS = {}
