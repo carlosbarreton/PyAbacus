@@ -163,6 +163,13 @@ def findDevices():
     ports = {}
     for i in range(len(ports_objects)):
         port = ports_objects[i]
+
+        attrs = ["device", "name", "description", "hwid", "vid", "pid",
+         "serial_number", "location", "manufacturer", "product", "interface"]
+
+        for attr in attrs:
+            print(attr + ":", eval("port.%s"%attr))
+            
         try:
             serial = AbacusSerial(port.device)
             if CURRENT_OS == "win32":
