@@ -1,4 +1,5 @@
 import serial
+from time import sleep
 import serial.tools.list_ports as find_ports
 
 from itertools import combinations
@@ -75,7 +76,7 @@ def getAllCounters(abacus_port):
     global COUNTERS_VALUES
     writeSerial(abacus_port, READ_VALUE, 24, 8)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
+    array, datas = dataStreamToDataArrays(data[0])
     dataArraysToCounters(array, datas)
     return COUNTERS_VALUES, COUNTERS_VALUES.getCountersID()
 
@@ -85,7 +86,7 @@ def getAllSettings(abacus_port):
     global SETTINGS
     writeSerial(abacus_port, READ_VALUE, 0, 24)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
+    array, datas = dataStreamToDataArrays(data[0])
     dataArraysToSettings(array, datas)
     return SETTINGS
 
@@ -98,7 +99,7 @@ def getSetting(abacus_port, setting):
     writeSerial(abacus_port, READ_VALUE, addr, 4)
 
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
+    array, datas = dataStreamToDataArrays(data[0])
     dataArraysToSettings(array, datas)
 
     return SETTINGS.getSetting(setting)
@@ -116,7 +117,7 @@ def getCountersID(abacus_port):
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["measure_number"], 0)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
+    array, datas = dataStreamToDataArrays(data[0])
     dataArraysToSettings(array, datas)
 
     return SETTINGS.getCountersID()
@@ -128,7 +129,7 @@ def getTimeLeft(abacus_port):
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["time_to_next_sample"], 0)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
+    array, datas = dataStreamToDataArrays(data[0])
     dataArraysToSettings(array, datas)
 
     return SETTINGS.getTimeLeft()
@@ -169,13 +170,13 @@ def findDevices():
 
         for attr in attrs:
             print(attr + ":", eval("port.%s"%attr))
-            
         try:
             serial = AbacusSerial(port.device)
-            if CURRENT_OS == "win32":
-                ports["%s"%port.description] = port.device
-            else:
-                ports["%s (%s)"%(port.description, port.device)] = port.device
+            if TEST_ANSWER in serial.getIdn():
+                if CURRENT_OS == "win32":
+                    ports["%s"%port.description] = port.device
+                else:
+                    ports["%s (%s)"%(port.description, port.device)] = port.device
             serial.close()
         except Exception as e:
             print(port.device, e)
@@ -238,9 +239,9 @@ class Settings2Ch(object):
     """
     """
     def __init__(self):
-        channels = ['delay_A', 'delay_B', 'sleep_A', 'sleep_B', 'coincidence_window', 'sampling']
+        self.channels = ['delay_A', 'delay_B', 'sleep_A', 'sleep_B', 'coincidence_window', 'sampling']
         names = []
-        for c in channels:
+        for c in self.channels:
             names += ["%s_ns"%c, "%s_us"%c, "%s_ms"%c, "%s_s"%c]
         for c in names:
             setattr(self, c, 0)
@@ -248,7 +249,7 @@ class Settings2Ch(object):
         self.addresses = {}
 
         for key in list(ADDRESS_DIRECTORY.keys()):
-            for c in channels:
+            for c in self.channels:
                 if c in key:
                     addr = ADDRESS_DIRECTORY[key]
                     self.addresses[addr] = key
@@ -297,6 +298,15 @@ class Settings2Ch(object):
         """
         return ADDRESS_DIRECTORY[timer], getattr(self, timer)
 
+    def __str__(self):
+        string = ""
+        for channel in self.channels:
+            if channel != "sampling":
+                string += "%s: %d (ns)\n"%(channel, self.getSetting(channel))
+            else:
+                string += "%s: %d (ms)\n"%(channel, self.getSetting(channel))
+        return string
+
 class AbacusSerial(serial.Serial):
     """
         Builds a serial port from pyserial.
@@ -305,7 +315,6 @@ class AbacusSerial(serial.Serial):
         super(AbacusSerial, self).__init__(port, baudrate = BAUDRATE, timeout = TIMEOUT)
         self.bounce_timeout = bounce_timeout
         self.flush()
-        # self.testAbacus()
 
     def flush(self):
         """
@@ -317,7 +326,8 @@ class AbacusSerial(serial.Serial):
         """
         """
         self.write(TEST_MESSAGE)
-        ans = self.read(20)
+        ans = self.read(30)
+        return ans.decode()
 
     def writeSerial(self, command, address, data_u16):
         """
@@ -334,14 +344,15 @@ class AbacusSerial(serial.Serial):
         """
         """
         for i in range(BOUNCE_TIMEOUT):
-            if self.read() == 0x7E:
+            ans = self.read()[0]
+            if ans == 0x7E:
                 break
         if i == BOUNCE_TIMEOUT - 1:
             raise(TimeOutError())
 
-        numbytes = self.read()
-        bytes_read = self.read(numbytes)
-        checksum = self.read()
+        numbytes = self.read()[0]
+        bytes_read = list(self.read(numbytes))
+        checksum = self.read()[0]
 
         return [0x7E, numbytes] +  bytes_read + [checksum], numbytes + 3
 
