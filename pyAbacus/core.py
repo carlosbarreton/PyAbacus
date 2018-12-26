@@ -1,5 +1,4 @@
 import serial
-from time import sleep
 import serial.tools.list_ports as find_ports
 
 import time
@@ -104,7 +103,7 @@ def getSetting(abacus_port, setting):
     writeSerial(abacus_port, READ_VALUE, addr, 4)
 
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data[0])
+    array, datas = dataStreamToDataArrays(data)
     dataArraysToSettings(array, datas)
 
     return SETTINGS.getSetting(setting)
@@ -168,22 +167,24 @@ def findDevices(print_on = True):
     ports = {}
     for i in range(len(ports_objects)):
         port = ports_objects[i]
+
         attrs = ["device", "name", "description", "hwid", "vid", "pid",
          "serial_number", "location", "manufacturer", "product", "interface"]
 
         if print_on:
             for attr in attrs:
                 print(attr + ":", eval("port.%s"%attr))
+
         try:
             serial = AbacusSerial(port.device)
-            if TEST_ANSWER in serial.getIdn():
-                if CURRENT_OS == "win32":
-                    ports["%s"%port.description] = port.device
-                else:
-                    ports["%s (%s)"%(port.description, port.device)] = port.device
+            if CURRENT_OS == "win32":
+                ports["%s"%port.description] = port.device
+            else:
+                ports["%s (%s)"%(port.description, port.device)] = port.device
             serial.close()
         except Exception as e:
             print(port.device, e)
+
     return ports, len(ports)
 
 class CountersValues(object):
@@ -342,6 +343,7 @@ class AbacusSerial(serial.Serial):
         super(AbacusSerial, self).__init__(port, baudrate = BAUDRATE, timeout = TIMEOUT)
         self.bounce_timeout = bounce_timeout
         self.flush()
+        # self.testAbacus()
 
     def flush(self):
         """
@@ -353,8 +355,7 @@ class AbacusSerial(serial.Serial):
         """
         """
         self.write(TEST_MESSAGE)
-        ans = self.read(30)
-        return ans.decode()
+        ans = self.read(20)
 
     def writeSerial(self, command, address, data_u16):
         """
@@ -397,25 +398,26 @@ class Stream(object):
         self.exceptions = []
 
     def threadFunc(self):
-        # try:
-        counters, id = getAllCounters(self.abacus_port)
-        if id != 0:
-            values = counters.getValuesFormatted(self.counters)
-            self.output_function(values)
+        try:
+            counters, id = getAllCounters(self.abacus_port)
+            if id != 0:
+                values = counters.getValuesFormatted(self.counters)
+                self.output_function(values)
 
-        while self.stream_on:
-            # try:
-            left = getTimeLeft(self.abacus_port)
-            counters, id2 = getAllCounters(self.abacus_port)
-            if id == id2:
-                time.sleep(left / 1000)
-                counters, id = getAllCounters(self.abacus_port)
-            else: id = id2
-            values = counters.getValuesFormatted(self.counters)
-            self.output_function(values)
-                # except Exception as e: self.exceptions.append(e); print(e)
-        # except Exception as e:
-        #     self.exceptions.append(e); print(e)
+            while self.stream_on:
+                try:
+                    left = getTimeLeft(self.abacus_port)
+                    counters, id2 = getAllCounters(self.abacus_port)
+                    if id == id2:
+                        time.sleep(left / 1000)
+                        counters, id = getAllCounters(self.abacus_port)
+                    else: id = id2
+                    values = counters.getValuesFormatted(self.counters)
+                    self.output_function(values)
+                except Exception as e: self.exceptions.append(e)
+        except Exception as e:
+            self.exceptions.append(e)
+
 
     def start(self):
         self.stream_on = True
