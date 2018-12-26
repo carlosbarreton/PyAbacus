@@ -72,12 +72,21 @@ SETTINGS = None #: Global settings variable
 COUNTERS_VALUES = None #: Global counters values variable
 
 
+<<<<<<< HEAD
 BAUDRATE = 115200 #: Default baudrate for the serial port communication
 TIMEOUT = 0.04 #: Maximum time without answer from the serial port
 BOUNCE_TIMEOUT = 40 #: Number of times a specific transmition is tried
+=======
 
-TEST_MESSAGE = "*IDN?".encode()
-TEST_ANSWER = "Tausand Abacus"
+BAUDRATE = 115200 #: Default baudrate for the serial port communication
+# TIMEOUT = 0.04 #: Maximum time without answer from the serial port
+TIMEOUT = 1
+BOUNCE_TIMEOUT = 15 #: Number of times a specific transmition is tried
+>>>>>>> 58c68efaf7e6ba04f3486c5055b200f6ff5244c2
+
+# TEST_MESSAGE = "*IDN?".encode()
+TEST_MESSAGE = [START_COMMUNICATION, 0x0D, 0, 0, 0, END_COMMUNICATION]
+TEST_ANSWER = "Tausand AB"
 
 ABACUS_SERIALS = {}
 
