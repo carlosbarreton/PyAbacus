@@ -15,7 +15,7 @@ setup(
     keywords = "example documentation tutorial",
     url = "https://github.com/Tausand-dev/ReimaginedQuantum",
     packages=['pyAbacus'],
-    install_requires=['pyserial'],
+    install_requires=['pyserial', 'pywinusb'],
     long_description=read('README'),
     classifiers=[
         "Development Status :: 1 - Planning",

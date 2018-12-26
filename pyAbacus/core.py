@@ -80,7 +80,7 @@ def getAllCounters(abacus_port):
     global COUNTERS_VALUES
     writeSerial(abacus_port, READ_VALUE, 24, 6)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data[0])
+    array, datas = dataStreamToDataArrays(data)
     dataArraysToCounters(array, datas)
 
     return COUNTERS_VALUES, getCountersID(abacus_port)
@@ -91,7 +91,7 @@ def getAllSettings(abacus_port):
     global SETTINGS
     writeSerial(abacus_port, READ_VALUE, 0, 24)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data[0])
+    array, datas = dataStreamToDataArrays(data)
     dataArraysToSettings(array, datas)
     return SETTINGS
 
@@ -168,14 +168,12 @@ def findDevices(print_on = True):
     ports = {}
     for i in range(len(ports_objects)):
         port = ports_objects[i]
-
         attrs = ["device", "name", "description", "hwid", "vid", "pid",
          "serial_number", "location", "manufacturer", "product", "interface"]
 
         if print_on:
             for attr in attrs:
                 print(attr + ":", eval("port.%s"%attr))
-
         try:
             serial = AbacusSerial(port.device)
             if TEST_ANSWER in serial.getIdn():
@@ -186,7 +184,6 @@ def findDevices(print_on = True):
             serial.close()
         except Exception as e:
             print(port.device, e)
-
     return ports, len(ports)
 
 class CountersValues(object):
@@ -400,26 +397,25 @@ class Stream(object):
         self.exceptions = []
 
     def threadFunc(self):
-        try:
-            counters, id = getAllCounters(self.abacus_port)
-            if id != 0:
-                values = counters.getValuesFormatted(self.counters)
-                self.output_function(values)
+        # try:
+        counters, id = getAllCounters(self.abacus_port)
+        if id != 0:
+            values = counters.getValuesFormatted(self.counters)
+            self.output_function(values)
 
-            while self.stream_on:
-                try:
-                    left = getTimeLeft(self.abacus_port)
-                    counters, id2 = getAllCounters(self.abacus_port)
-                    if id == id2:
-                        time.sleep(left / 1000)
-                        counters, id = getAllCounters(self.abacus_port)
-                    else: id = id2
-                    values = counters.getValuesFormatted(self.counters)
-                    self.output_function(values)
-                except Exception as e: self.exceptions.append(e)
-        except Exception as e:
-            self.exceptions.append(e)
-
+        while self.stream_on:
+            # try:
+            left = getTimeLeft(self.abacus_port)
+            counters, id2 = getAllCounters(self.abacus_port)
+            if id == id2:
+                time.sleep(left / 1000)
+                counters, id = getAllCounters(self.abacus_port)
+            else: id = id2
+            values = counters.getValuesFormatted(self.counters)
+            self.output_function(values)
+                # except Exception as e: self.exceptions.append(e); print(e)
+        # except Exception as e:
+        #     self.exceptions.append(e); print(e)
 
     def start(self):
         self.stream_on = True
