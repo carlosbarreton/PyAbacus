@@ -1,11 +1,15 @@
 import serial
 import serial.tools.list_ports as find_ports
 
+import time
+from threading import Thread
+
 from itertools import combinations
 
 from .constants import TIMEOUT, BAUDRATE, START_COMMUNICATION, READ_VALUE, WRITE_VALUE, END_COMMUNICATION, BOUNCE_TIMEOUT
 from .constants import CURRENT_OS, ABACUS_SERIALS, TEST_MESSAGE, TEST_ANSWER, ADDRESS_DIRECTORY, COUNTERS_VALUES, SETTINGS
 from .exceptions import *
+import pyAbacus.constants
 
 def open(abacus_port):
     """
@@ -42,12 +46,12 @@ def readSerial(abacus_port):
 def dataStreamToDataArrays(input_string):
     """
     """
+    input_string, n = input_string
     test = sum(input_string[2:]) & 0xFF # 8 bit
     if test != 0xFF:
         raise(CheckSumError())
-    n = input_string[1]
     chuncks = input_string[2 : -1] # (addr & MSB & LSB)^n
-    chuncks = [chuncks[i:i + 3] for i in range(0, n, 3)]
+    chuncks = [chuncks[i:i + 3] for i in range(0, n-3, 3)]
     addresses = [chunck[0] for chunck in chuncks]
     data = [(chunck[1] << 8) | (chunck[2]) for chunck in chuncks]
 
@@ -73,11 +77,12 @@ def getAllCounters(abacus_port):
     """
     """
     global COUNTERS_VALUES
-    writeSerial(abacus_port, READ_VALUE, 24, 8)
+    writeSerial(abacus_port, READ_VALUE, 24, 6)
     data = readSerial(abacus_port)
     array, datas = dataStreamToDataArrays(data)
     dataArraysToCounters(array, datas)
-    return COUNTERS_VALUES, COUNTERS_VALUES.getCountersID()
+
+    return COUNTERS_VALUES, getCountersID(abacus_port)
 
 def getAllSettings(abacus_port):
     """
@@ -112,26 +117,25 @@ def getIdn(abacus_port):
 def getCountersID(abacus_port):
     """
     """
-    global SETTINGS
+    global COUNTERS_VALUES
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["measure_number"], 0)
     data = readSerial(abacus_port)
     array, datas = dataStreamToDataArrays(data)
-    dataArraysToSettings(array, datas)
 
-    return SETTINGS.getCountersID()
+    COUNTERS_VALUES.setCountersID(datas[0])
+    return datas[0]
 
 def getTimeLeft(abacus_port):
     """
     """
-    global SETTINGS
+    global COUNTERS_VALUES
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORY["time_to_next_sample"], 0)
     data = readSerial(abacus_port)
     array, datas = dataStreamToDataArrays(data)
-    dataArraysToSettings(array, datas)
-
-    return SETTINGS.getTimeLeft()
+    COUNTERS_VALUES.setTimeLeft(datas[0])
+    return COUNTERS_VALUES.getTimeLeft()
 
 def setSetting(abacus_port, setting, value):
     """
@@ -155,7 +159,7 @@ def setAllSettings(abacus_port, new_settings):
     else:
         raise(Exception("New settings are not a valid type."))
 
-def findDevices():
+def findDevices(print_on = True):
     """
     """
     global CURRENT_OS
@@ -167,9 +171,10 @@ def findDevices():
         attrs = ["device", "name", "description", "hwid", "vid", "pid",
          "serial_number", "location", "manufacturer", "product", "interface"]
 
-        for attr in attrs:
-            print(attr + ":", eval("port.%s"%attr))
-            
+        if print_on:
+            for attr in attrs:
+                print(attr + ":", eval("port.%s"%attr))
+
         try:
             serial = AbacusSerial(port.device)
             if CURRENT_OS == "win32":
@@ -187,12 +192,14 @@ class CountersValues(object):
     """
     def __init__(self, n_channels):
         letters = [chr(ord('A') + i) for i in range(n_channels)]
-
         channels = []
         for i in range(1, n_channels + 1):
             for item in combinations("".join(letters), i):
                 item = "".join(item)
                 channels.append(item)
+
+        self.n_channels = n_channels
+        self.channels_letters = channels
 
         for c in channels:
             setattr(self, "%s_LSB"%c, 0)
@@ -208,8 +215,8 @@ class CountersValues(object):
 
         self.addresses[30] = 'measure_number'
         self.addresses[31] = 'time_to_next_sample'
-        self.measure_number = 0
-        self.time_to_next_sample = 0
+        self.counters_id = 0
+        self.time_to_next_sample = 0 #: in ms
 
     def setValueFromArray(self, address, value):
         """
@@ -224,23 +231,43 @@ class CountersValues(object):
 
         return msb | lsb
 
+    def getValues(self, channels):
+        return [self.getValue(c) for c in channels]
+
+    def getValuesFormatted(self, channels):
+        values = ["%d"%v for v in self.getValues(channels)]
+        return "(%d) "%self.getCountersID() + ", ".join(values)
+
     def getCountersID(self):
         """
         """
-        return self.measure_number
+        return self.counters_id
+
+    def setCountersID(self, id):
+        """
+        """
+        self.counters_id = id
 
     def getTimeLeft(self):
         """
         """
         return self.time_to_next_sample
 
+    def setTimeLeft(self, time):
+        self.time_to_next_sample = time # ms
+
+    def __repr__(self):
+        values = ["\t%s: %d"%(i, self.getValue(i)) for i in self.channels_letters]
+        text = "COUNTERS VALUES: %d\n"%self.getCountersID() + "\n".join(values)
+        return text
+
 class Settings2Ch(object):
     """
     """
     def __init__(self):
-        channels = ['delay_A', 'delay_B', 'sleep_A', 'sleep_B', 'coincidence_window', 'sampling']
+        self.channels = ['delay_A', 'delay_B', 'sleep_A', 'sleep_B', 'coincidence_window', 'sampling']
         names = []
-        for c in channels:
+        for c in self.channels:
             names += ["%s_ns"%c, "%s_us"%c, "%s_ms"%c, "%s_s"%c]
         for c in names:
             setattr(self, c, 0)
@@ -248,7 +275,7 @@ class Settings2Ch(object):
         self.addresses = {}
 
         for key in list(ADDRESS_DIRECTORY.keys()):
-            for c in channels:
+            for c in self.channels:
                 if c in key:
                     addr = ADDRESS_DIRECTORY[key]
                     self.addresses[addr] = key
@@ -297,6 +324,17 @@ class Settings2Ch(object):
         """
         return ADDRESS_DIRECTORY[timer], getattr(self, timer)
 
+    def getSettingStr(self, timer):
+        value = self.getSetting(timer)
+        unit = "ns"
+        if timer == "sampling": unit = "ms"
+        return "%s (%s): %d"%(timer, unit, value)
+
+    def __repr__(self):
+        values = ["\t%s"%(self.getSettingStr(c)) for c in self.channels]
+        text = "SETTINGS:\n" + "\n".join(values)
+        return text
+
 class AbacusSerial(serial.Serial):
     """
         Builds a serial port from pyserial.
@@ -328,22 +366,69 @@ class AbacusSerial(serial.Serial):
         else:
             msb = 0
             lsb = data_u16 & 0xFF
-        self.write([START_COMMUNICATION, command, address, msb, lsb, END_COMMUNICATION])
+        message = [START_COMMUNICATION, command, address, msb, lsb, END_COMMUNICATION]
+        if pyAbacus.constants.DEBUG:
+            print('writeSerial:', message)
+        self.write(message)
 
     def readSerial(self):
         """
         """
         for i in range(BOUNCE_TIMEOUT):
-            if self.read() == 0x7E:
+            val = self.read()[0]
+            if pyAbacus.constants.DEBUG: print('readSerial:', val)
+            if val == 0x7E:
                 break
         if i == BOUNCE_TIMEOUT - 1:
             raise(TimeOutError())
 
-        numbytes = self.read()
-        bytes_read = self.read(numbytes)
-        checksum = self.read()
+        numbytes = self.read()[0]
+        bytes_read = list(self.read(numbytes))
+        checksum = self.read()[0]
+        message = [0x7E, numbytes] +  bytes_read + [checksum], numbytes + 3
+        if pyAbacus.constants.DEBUG: print('readSerial:', message)
+        return message
 
-        return [0x7E, numbytes] +  bytes_read + [checksum], numbytes + 3
+class Stream(object):
+    def __init__(self, abacus_port, counters, output_function = print):
+        self.abacus_port = abacus_port
+        self.counters = counters
+        self.output_function = output_function
+        self.stream_on = False
+        self.exceptions = []
+
+    def threadFunc(self):
+        try:
+            counters, id = getAllCounters(self.abacus_port)
+            if id != 0:
+                values = counters.getValuesFormatted(self.counters)
+                self.output_function(values)
+
+            while self.stream_on:
+                try:
+                    left = getTimeLeft(self.abacus_port)
+                    counters, id2 = getAllCounters(self.abacus_port)
+                    if id == id2:
+                        time.sleep(left / 1000)
+                        counters, id = getAllCounters(self.abacus_port)
+                    else: id = id2
+                    values = counters.getValuesFormatted(self.counters)
+                    self.output_function(values)
+                except Exception as e: self.exceptions.append(e)
+        except Exception as e:
+            self.exceptions.append(e)
+
+
+    def start(self):
+        self.stream_on = True
+        self.thread = Thread(target = self.threadFunc, daemon = True)
+        self.thread.start()
+
+    def stop(self):
+        self.stream_on = False
+
+    def setCounters(self, counters):
+        self.counters = counters
 
 COUNTERS_VALUES = CountersValues(2)
 SETTINGS = Settings2Ch()
