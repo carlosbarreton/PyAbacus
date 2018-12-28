@@ -8,6 +8,12 @@ from itertools import combinations
 
 from .constants import TIMEOUT, BAUDRATE, START_COMMUNICATION, READ_VALUE, WRITE_VALUE, END_COMMUNICATION, BOUNCE_TIMEOUT
 from .constants import CURRENT_OS, ABACUS_SERIALS, TEST_MESSAGE, TEST_ANSWER, ADDRESS_DIRECTORY, COUNTERS_VALUES, SETTINGS
+
+from .constants import SAMPLING_VALUES
+from .constants import DELAY_MINIMUM_VALUE, DELAY_MAXIMUM_VALUE, DELAY_STEP_VALUE
+from .constants import SLEEP_MINIMUM_VALUE, SLEEP_MAXIMUM_VALUE, SLEEP_STEP_VALUE
+from .constants import COINCIDENCE_WINDOW_MINIMUM_VALUE, COINCIDENCE_WINDOW_MAXIMUM_VALUE, COINCIDENCE_WINDOW_STEP_VALUE
+
 from .exceptions import *
 import pyAbacus.constants
 
@@ -165,32 +171,46 @@ def findDevices(print_on = True):
     global CURRENT_OS
     ports_objects = list(find_ports.comports())
     ports = {}
+    keys = []
     for i in range(len(ports_objects)):
         port = ports_objects[i]
-
         attrs = ["device", "name", "description", "hwid", "vid", "pid",
          "serial_number", "location", "manufacturer", "product", "interface"]
 
         if print_on:
             for attr in attrs:
                 print(attr + ":", eval("port.%s"%attr))
-
         try:
             serial = AbacusSerial(port.device)
-            if CURRENT_OS == "win32":
-                ports["%s"%port.description] = port.device
-            else:
-                ports["%s (%s)"%(port.description, port.device)] = port.device
+            if not serial.testDevice():
+                if pyAbacus.constants.DEBUG:
+                    print(port.device, "answered: %s"%serial.getIdn())
+                serial.close()
+                continue
+            idn = serial.getIdn()
+            keys = list(renameDuplicates(keys + [idn]))
+            ports[keys[-1]] = port.device
             serial.close()
         except Exception as e:
             print(port.device, e)
 
     return ports, len(ports)
 
-class CountersValues(object):
+def renameDuplicates(old):
+    seen = {}
+    for x in old:
+        if x in seen:
+            seen[x] += 1
+            yield "%s-%d" % (x, seen[x])
+        else:
+            seen[x] = 0
+            yield x
+
+class CountersValues2Ch(object):
     """
     """
-    def __init__(self, n_channels):
+    def __init__(self):
+        n_channels = 2
         letters = [chr(ord('A') + i) for i in range(n_channels)]
         channels = []
         for i in range(1, n_channels + 1):
@@ -285,13 +305,45 @@ class Settings2Ch(object):
         """
         setattr(self, self.addresses[address], value)
 
+    def valueCheck(self, value, min, max, step):
+        if (value >= min) and (value <= max) and (value % step == 0):
+            return True
+        else: return False
+
     def setSetting(self, setting, value):
         """
         """
-        getattr(self, setting + "_ns")
-        getattr(self, setting + "_us")
-        getattr(self, setting + "_ms")
-        getattr(self, setting + "_s")
+        if "delay" in setting:
+            if not self.valueCheck(value, DELAY_MINIMUM_VALUE, \
+                DELAY_MAXIMUM_VALUE, DELAY_STEP_VALUE):
+                txt = "(%d <= %d delay (ns) <= %d) with steps of: %d"%(DELAY_MINIMUM_VALUE, \
+                value, DELAY_MAXIMUM_VALUE, DELAY_STEP_VALUE)
+                raise(InvalidValueError(txt))
+
+        if "sleep" in setting:
+            if not self.valueCheck(value, SLEEP_MINIMUM_VALUE, \
+                SLEEP_MAXIMUM_VALUE, SLEEP_STEP_VALUE):
+                txt = "(%d <= %d sleep (ns) <= %d) with steps of: %d"%(SLEEP_MINIMUM_VALUE, \
+                value, SLEEP_MAXIMUM_VALUE, SLEEP_STEP_VALUE)
+                raise(InvalidValueError(txt))
+
+        if "coincidence_window" in setting:
+            if not self.valueCheck(value, COINCIDENCE_WINDOW_MINIMUM_VALUE, \
+                COINCIDENCE_WINDOW_MAXIMUM_VALUE, COINCIDENCE_WINDOW_STEP_VALUE):
+                txt = " (%d <= %d coincidence window (ns) <= %d) with steps of: %d"%(COINCIDENCE_WINDOW_MINIMUM_VALUE, \
+                value, COINCIDENCE_WINDOW_MAXIMUM_VALUE, COINCIDENCE_WINDOW_STEP_VALUE)
+                raise(InvalidValueError(txt))
+
+        if "sampling" in setting:
+            if not int(value) in SAMPLING_VALUES:
+                sampling = ", ".join(["%d"%i for i in SAMPLING_VALUES])
+                txt = ", sampling time must be one of the following: %s (ms)"%sampling
+                raise(InvalidValueError(txt))
+
+        # getattr(self, setting + "_ns")
+        # getattr(self, setting + "_us")
+        # getattr(self, setting + "_ms")
+        # getattr(self, setting + "_s")
 
         if "sampling" in setting:
             setattr(self, setting + "_ns", 0)
@@ -342,8 +394,8 @@ class AbacusSerial(serial.Serial):
     def __init__(self, port, bounce_timeout = BOUNCE_TIMEOUT):
         super(AbacusSerial, self).__init__(port, baudrate = BAUDRATE, timeout = TIMEOUT)
         self.bounce_timeout = bounce_timeout
+        self.idn = ""
         self.flush()
-        # self.testAbacus()
 
     def flush(self):
         """
@@ -351,11 +403,21 @@ class AbacusSerial(serial.Serial):
         self.flushInput()
         self.flushOutput()
 
-    def getIdn(self):
+    def findIdn(self):
         """
         """
         self.write(TEST_MESSAGE)
-        ans = self.read(20)
+        self.idn = self.read(21).decode()
+        time.sleep(1)
+        return self.idn
+
+    def getIdn(self):
+        return self.idn
+
+    def testDevice(self):
+        ans = self.findIdn()
+        if TEST_ANSWER in ans: return True
+        return False
 
     def writeSerial(self, command, address, data_u16):
         """
@@ -398,26 +460,24 @@ class Stream(object):
         self.exceptions = []
 
     def threadFunc(self):
-        try:
-            counters, id = getAllCounters(self.abacus_port)
-            if id != 0:
-                values = counters.getValuesFormatted(self.counters)
-                self.output_function(values)
+        # try:
+        counters, id = getAllCounters(self.abacus_port)
+        if id != 0:
+            values = counters.getValuesFormatted(self.counters)
+            self.output_function(values)
 
-            while self.stream_on:
-                try:
-                    left = getTimeLeft(self.abacus_port)
-                    counters, id2 = getAllCounters(self.abacus_port)
-                    if id == id2:
-                        time.sleep(left / 1000)
-                        counters, id = getAllCounters(self.abacus_port)
-                    else: id = id2
-                    values = counters.getValuesFormatted(self.counters)
-                    self.output_function(values)
-                except Exception as e: self.exceptions.append(e)
-        except Exception as e:
-            self.exceptions.append(e)
-
+        while self.stream_on:
+            # try:
+            left = getTimeLeft(self.abacus_port)
+            counters, id2 = getAllCounters(self.abacus_port)
+            if id == id2:
+                time.sleep(left / 1000)
+                counters, id = getAllCounters(self.abacus_port)
+            else: id = id2
+            values = counters.getValuesFormatted(self.counters)
+            self.output_function(values)
+        # except Exception as e:
+        #     self.exceptions.append(e)
 
     def start(self):
         self.stream_on = True
@@ -430,5 +490,5 @@ class Stream(object):
     def setCounters(self, counters):
         self.counters = counters
 
-COUNTERS_VALUES = CountersValues(2)
+COUNTERS_VALUES = CountersValues2Ch()
 SETTINGS = Settings2Ch()

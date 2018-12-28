@@ -47,7 +47,6 @@ END_COMMUNICATION = 0x04 #: End of message
 MAXIMUM_WRITING_TRIES = 20 #: Number of tries done to write a value
 
 
-
 COINCIDENCE_WINDOW_MINIMUM_VALUE = 5 #: Minimum coincidence window time value (ns).
 COINCIDENCE_WINDOW_MAXIMUM_VALUE = 50000 #: Maximum coincidence window time value (ns).
 COINCIDENCE_WINDOW_STEP_VALUE = 5 #: Increase ratio on the coincidence window time value (ns).

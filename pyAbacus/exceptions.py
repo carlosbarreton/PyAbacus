@@ -28,3 +28,9 @@ class TimeOutError(BaseError):
 
     def __init__(self, message = ""):
         super(TimeOutError, self).__init__("A timeout error ocurred " + message)
+
+class InvalidValueError(BaseError):
+    """ The selected value is not valid """
+
+    def __init__(self, message = ""):
+        super(InvalidValueError, self).__init__("The selected value is not valid" + message)
