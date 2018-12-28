@@ -35,10 +35,99 @@ ADDRESS_DIRECTORY_2CH = {'delay_A_ns': 0,
            'counts_B_MSB': 27,
            'counts_AB_LSB': 28,
            'counts_AB_MSB': 29,
-           'measure_number': 30,
-           'time_to_next_sample': 31} #: Memory addresses
+           'dataID': 30,
+           'time_left': 31} #: Memory addresses
 
-ADDRESS_DIRECTORY = ADDRESS_DIRECTORY_2CH
+ADDRESS_DIRECTORY_8CH = {'counts_A': 0,
+           'counts_AB': 1,
+           'counts_AC': 2,
+           'counts_AD': 3,
+           'counts_AE': 4,
+           'counts_AF': 5,
+           'counts_AG': 6,
+           'counts_AH': 7,
+           # 8
+           'counts_B': 9,
+           'counts_BC': 10,
+           'counts_BD': 11,
+           'counts_BE': 12,
+           'counts_BF': 13,
+           'counts_BG': 14,
+           'counts_BH': 15,
+           # 16
+           # 17
+           'counts_C': 18,
+           'counts_CD': 19,
+           'counts_CE': 20,
+           'counts_CF': 21,
+           'counts_CG': 22,
+           'counts_CH': 23,
+           # 24
+           # 25
+           # 26
+           'counts_D': 27,
+           'counts_DE': 28,
+           'counts_DF': 29,
+           'counts_DG': 30,
+           'counts_DH': 31,
+           # 32
+           # 33
+           # 34
+           # 35
+           'counts_E': 36,
+           'counts_EF': 37,
+           'counts_EG': 38,
+           'counts_EH': 39,
+           # 40
+           # 41
+           # 42
+           # 43
+           # 44
+           'counts_F': 45,
+           'counts_FG': 46,
+           'counts_FH': 47,
+           # 48
+           # 49
+           # 50
+           # 51
+           # 52
+           # 53
+           'counts_G': 54,
+           'counts_GH': 55,
+           # 56
+           # 57
+           # 58
+           # 59
+           # 60
+           # 61
+           # 62
+           'counts_H': 63,
+           'delay_A': 64,
+           'delay_B': 65,
+           'delay_C': 66,
+           'delay_D': 67,
+           'delay_E': 68,
+           'delay_F': 69,
+           'delay_G': 70,
+           'delay_H': 71,
+           'sleep_A': 72,
+           'sleep_B': 73,
+           'sleep_C': 74,
+           'sleep_D': 75,
+           'sleep_E': 76,
+           'sleep_F': 77,
+           'sleep_G': 78,
+           'sleep_H': 79,
+           'sampling': 80,
+           'coincidence_window': 81,
+           'dataID': 83,
+           'time_left': 84}
+           # 'measure_number': 30,
+           # 'time_to_next_sample': 31} #: Memory addresses
+
+# ADDRESS_DIRECTORY = ADDRESS_DIRECTORY_2CH
+
+ADDRESS_DIRECTORIES = {}
 
 READ_VALUE = 0x0e #: Reading operation signal
 WRITE_VALUE = 0x0f #: Writing operation signal
@@ -66,13 +155,12 @@ coeff = [1, 2, 5]
 SAMPLING_VALUES = [int(c*10**i) for i in range(6) for c in coeff] + [int(1e6)] #: From (1, 2, 5) ms to 1000 s
 SAMPLING_DEFAULT_VALUE = 100 #: Default sampling time value (ms)
 
-SETTINGS = None #: Global settings variable
-
-COUNTERS_VALUES = None #: Global counters values variable
+SETTINGS = {} #: Global settings variable
+COUNTERS_VALUES = {} #: Global counters values variable
 
 
 BAUDRATE = 115200 #: Default baudrate for the serial port communication
-TIMEOUT = 0.04 #: Maximum time without answer from the serial port
+TIMEOUT = 0.5 #: Maximum time without answer from the serial port
 BOUNCE_TIMEOUT = 40 #: Number of times a specific transmition is tried
 
 TEST_MESSAGE = "*IDN?".encode()
