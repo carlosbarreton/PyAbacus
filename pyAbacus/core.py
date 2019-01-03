@@ -55,6 +55,8 @@ def close(abacus_port):
         del ADDRESS_DIRECTORIES[abacus_port]
 
 def getChannelsFromName(name):
+    """
+    """
     if "AB1002" in name:
         return 2
     elif "AB1004" in name:
@@ -292,6 +294,8 @@ def findDevices(print_on = True):
     return ports, len(ports)
 
 def renameDuplicates(old):
+    """
+    """
     seen = {}
     for x in old:
         if x in seen:
@@ -373,9 +377,13 @@ class CountersValues(object):
             return getattr(self, "%s" % channel)
 
     def getValues(self, channels):
+        """
+        """
         return [self.getValue(c) for c in channels]
 
     def getValuesFormatted(self, channels):
+        """
+        """
         values = ["%d"%v for v in self.getValues(channels)]
         return "(%d) "%self.getCountersID() + ", ".join(values)
 
@@ -395,9 +403,13 @@ class CountersValues(object):
         return self.time_left
 
     def setTimeLeft(self, time):
+        """
+        """
         self.time_left = time # ms
 
     def getNumericAddresses(self):
+        """
+        """
         return self.numeric_addresses
 
     def __repr__(self):
@@ -415,6 +427,8 @@ class SettingsBase(object):
         setattr(self, self.addresses[address], value)
 
     def valueCheck(self, value, min, max, step):
+        """
+        """
         if (value >= min) and (value <= max) and (value % step == 0):
             return True
         else: return False
@@ -462,6 +476,8 @@ class Settings48Ch(SettingsBase):
         super(Settings48Ch, self).__init__()
 
     def initAddreses(self):
+        """
+        """
         for c in self.channels:
             setattr(self, c, 0)
 
@@ -472,6 +488,8 @@ class Settings48Ch(SettingsBase):
                 self.addresses[addr] = c
 
     def getChannels(self):
+        """
+        """
         return self.channels
 
     def setSetting(self, setting, value):
@@ -503,20 +521,28 @@ class Settings48Ch(SettingsBase):
         return ADDRESS_DIRECTORY_8CH[timer], getattr(self, timer)
 
     def getSettingStr(self, timer):
+        """
+        """
         value = self.getSetting(timer)
         unit = "ns"
         if timer == "sampling": unit = "ms"
         return "%s (%s): %d"%(timer, unit, value)
 
     def fromBitsToValue(self, bits):
+        """
+        """
         e = bits >> 12
         c = bits & 0xFFF
         return self.exponentRepresentationToValue(c, e)
 
     def exponentRepresentationToValue(self, c, e):
+        """
+        """
         return int(c) * 10 ** (int(e) - 10)
 
     def valueToExponentRepresentation(self, number):
+        """
+        """
         if number == 0:
             return 0, 0
         else:
@@ -536,6 +562,8 @@ class Settings48Ch(SettingsBase):
                 raise(InvalidValueError(". Only two signficant figures are posible: %.3e"%number))
 
     def exponentsToBits(self, c, e):
+        """
+        """
         e = e << 12
         c = c & 0xFFF
         return e | c
@@ -560,6 +588,8 @@ class Settings2Ch(SettingsBase):
                     self.addresses[addr] = key
 
     def setSetting(self, setting, value):
+        """
+        """
         self.verifySetting(setting, value)
         if "sampling" in setting:
             setattr(self, setting + "_ns", 0)
@@ -593,6 +623,8 @@ class Settings2Ch(SettingsBase):
         return ADDRESS_DIRECTORY_2CH[timer], getattr(self, timer)
 
     def getSettingStr(self, timer):
+        """
+        """
         value = self.getSetting(timer)
         unit = "ns"
         if timer == "sampling": unit = "ms"
@@ -656,9 +688,13 @@ class AbacusSerial(serial.Serial):
         return self.idn
 
     def getIdn(self):
+        """
+        """
         return self.idn
 
     def testDevice(self):
+        """
+        """
         ans = self.findIdn()
         if TEST_ANSWER in ans: return True
         return False
@@ -698,9 +734,13 @@ class AbacusSerial(serial.Serial):
         return message
 
     def getNChannels(self):
+        """
+        """
         return self.n_channels
 
 class Stream(object):
+    """
+    """
     def __init__(self, abacus_port, counters, output_function = print):
         self.abacus_port = abacus_port
         self.counters = counters
@@ -735,12 +775,18 @@ class Stream(object):
         #     self.exceptions.append(e)
 
     def start(self):
+        """
+        """
         self.stream_on = True
         self.thread = Thread(target = self.threadFunc, daemon = True)
         self.thread.start()
 
     def stop(self):
+        """
+        """
         self.stream_on = False
 
     def setCounters(self, counters):
+        """
+        """
         self.counters = counters

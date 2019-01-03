@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pyAbacus.core &mdash; PyAbacus 1.0.5 documentation</title>
+  <title>pyAbacus.core &mdash; pyAbacus 1.0.6 documentation</title>
   
 
   
@@ -48,7 +48,7 @@
           
 
           
-            <a href="index.html" class="icon icon-home"> PyAbacus
+            <a href="index.html" class="icon icon-home"> pyAbacus
           
 
           
@@ -100,7 +100,7 @@
       <nav class="wy-nav-top" aria-label="top navigation">
         
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-          <a href="index.html">PyAbacus</a>
+          <a href="index.html">pyAbacus</a>
         
       </nav>
 
@@ -154,8 +154,13 @@
 <span id="pyabacus-core"></span><h1>pyAbacus.core<a class="headerlink" href="#module-pyAbacus.core" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="pyAbacus.core.AbacusSerial">
-<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">AbacusSerial</code><span class="sig-paren">(</span><em>port</em>, <em>bounce_timeout=20</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">AbacusSerial</code><span class="sig-paren">(</span><em>port</em>, <em>bounce_timeout=40</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds a serial port from pyserial.</p>
+<dl class="method">
+<dt id="pyAbacus.core.AbacusSerial.findIdn">
+<code class="descname">findIdn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.findIdn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pyAbacus.core.AbacusSerial.flush">
 <code class="descname">flush</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.flush" title="Permalink to this definition">¶</a></dt>
@@ -167,13 +172,23 @@
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyAbacus.core.AbacusSerial.getNChannels">
+<code class="descname">getNChannels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.getNChannels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pyAbacus.core.AbacusSerial.readSerial">
 <code class="descname">readSerial</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.readSerial" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyAbacus.core.AbacusSerial.testDevice">
+<code class="descname">testDevice</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.testDevice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pyAbacus.core.AbacusSerial.writeSerial">
-<code class="descname">writeSerial</code><span class="sig-paren">(</span><em>command</em>, <em>address</em>, <em>data_u16</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.writeSerial" title="Permalink to this definition">¶</a></dt>
+<code class="descname">writeSerial</code><span class="sig-paren">(</span><em>command</em>, <em>address</em>, <em>data_16o32</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.writeSerial" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -187,6 +202,11 @@
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyAbacus.core.CountersValues.getNumericAddresses">
+<code class="descname">getNumericAddresses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getNumericAddresses" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pyAbacus.core.CountersValues.getTimeLeft">
 <code class="descname">getTimeLeft</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getTimeLeft" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -197,9 +217,35 @@
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyAbacus.core.CountersValues.getValues">
+<code class="descname">getValues</code><span class="sig-paren">(</span><em>channels</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getValues" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.CountersValues.getValuesFormatted">
+<code class="descname">getValuesFormatted</code><span class="sig-paren">(</span><em>channels</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getValuesFormatted" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.CountersValues.setCountersID">
+<code class="descname">setCountersID</code><span class="sig-paren">(</span><em>id</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.setCountersID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.CountersValues.setTimeLeft">
+<code class="descname">setTimeLeft</code><span class="sig-paren">(</span><em>time</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.setTimeLeft" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pyAbacus.core.CountersValues.setValueFromArray">
 <code class="descname">setValueFromArray</code><span class="sig-paren">(</span><em>address</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.setValueFromArray" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pyAbacus.core.CountersValues.time_left">
+<code class="descname">time_left</code><em class="property"> = None</em><a class="headerlink" href="#pyAbacus.core.CountersValues.time_left" title="Permalink to this definition">¶</a></dt>
+<dd><p>in ms</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -217,13 +263,103 @@
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pyAbacus.core.Settings2Ch.getSettingStr">
+<code class="descname">getSettingStr</code><span class="sig-paren">(</span><em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings2Ch.getSettingStr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pyAbacus.core.Settings2Ch.setSetting">
 <code class="descname">setSetting</code><span class="sig-paren">(</span><em>setting</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings2Ch.setSetting" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="pyAbacus.core.Settings48Ch">
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">Settings48Ch</code><a class="headerlink" href="#pyAbacus.core.Settings48Ch" title="Permalink to this definition">¶</a></dt>
+<dd><p>4 and 8 channel devices use as time base a second. Nevertheless 2 channel uses ns for all timers with the exception of the sampling time (ms).</p>
 <dl class="method">
-<dt id="pyAbacus.core.Settings2Ch.setValueFromArray">
-<code class="descname">setValueFromArray</code><span class="sig-paren">(</span><em>address</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings2Ch.setValueFromArray" title="Permalink to this definition">¶</a></dt>
+<dt id="pyAbacus.core.Settings48Ch.exponentRepresentationToValue">
+<code class="descname">exponentRepresentationToValue</code><span class="sig-paren">(</span><em>c</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.exponentRepresentationToValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.exponentsToBits">
+<code class="descname">exponentsToBits</code><span class="sig-paren">(</span><em>c</em>, <em>e</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.exponentsToBits" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.fromBitsToValue">
+<code class="descname">fromBitsToValue</code><span class="sig-paren">(</span><em>bits</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.fromBitsToValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.getAddressAndValue">
+<code class="descname">getAddressAndValue</code><span class="sig-paren">(</span><em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.getAddressAndValue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.getChannels">
+<code class="descname">getChannels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.getChannels" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.getSetting">
+<code class="descname">getSetting</code><span class="sig-paren">(</span><em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.getSetting" title="Permalink to this definition">¶</a></dt>
+<dd><p>For all timers: returns nanoseconds, for sampling returns ms.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.getSettingStr">
+<code class="descname">getSettingStr</code><span class="sig-paren">(</span><em>timer</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.getSettingStr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.initAddreses">
+<code class="descname">initAddreses</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.initAddreses" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.setSetting">
+<code class="descname">setSetting</code><span class="sig-paren">(</span><em>setting</em>, <em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.setSetting" title="Permalink to this definition">¶</a></dt>
+<dd><p>For all timers: value is in nanoseconds, for sampling in ms.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Settings48Ch.valueToExponentRepresentation">
+<code class="descname">valueToExponentRepresentation</code><span class="sig-paren">(</span><em>number</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Settings48Ch.valueToExponentRepresentation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pyAbacus.core.Settings4Ch">
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">Settings4Ch</code><a class="headerlink" href="#pyAbacus.core.Settings4Ch" title="Permalink to this definition">¶</a></dt>
+<dd><p>4 and 8 channel devices use as time base a second. Nevertheless 2 channel uses ns for all timers with the exception of the sampling time (ms).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyAbacus.core.Settings8Ch">
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">Settings8Ch</code><a class="headerlink" href="#pyAbacus.core.Settings8Ch" title="Permalink to this definition">¶</a></dt>
+<dd><p>4 and 8 channel devices use as time base a second. Nevertheless 2 channel uses ns for all timers with the exception of the sampling time (ms).</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pyAbacus.core.Stream">
+<em class="property">class </em><code class="descclassname">pyAbacus.core.</code><code class="descname">Stream</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>counters</em>, <em>output_function=&lt;built-in function print&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Stream" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="pyAbacus.core.Stream.setCounters">
+<code class="descname">setCounters</code><span class="sig-paren">(</span><em>counters</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Stream.setCounters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Stream.start">
+<code class="descname">start</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Stream.start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pyAbacus.core.Stream.stop">
+<code class="descname">stop</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.Stream.stop" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -235,12 +371,12 @@
 
 <dl class="function">
 <dt id="pyAbacus.core.dataArraysToCounters">
-<code class="descclassname">pyAbacus.core.</code><code class="descname">dataArraysToCounters</code><span class="sig-paren">(</span><em>addresses</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.dataArraysToCounters" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyAbacus.core.</code><code class="descname">dataArraysToCounters</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>addresses</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.dataArraysToCounters" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="pyAbacus.core.dataArraysToSettings">
-<code class="descclassname">pyAbacus.core.</code><code class="descname">dataArraysToSettings</code><span class="sig-paren">(</span><em>addresses</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.dataArraysToSettings" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyAbacus.core.</code><code class="descname">dataArraysToSettings</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>addresses</em>, <em>data</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.dataArraysToSettings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -250,7 +386,7 @@
 
 <dl class="function">
 <dt id="pyAbacus.core.findDevices">
-<code class="descclassname">pyAbacus.core.</code><code class="descname">findDevices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.findDevices" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyAbacus.core.</code><code class="descname">findDevices</code><span class="sig-paren">(</span><em>print_on=True</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.findDevices" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -264,8 +400,18 @@
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="pyAbacus.core.getChannelsFromName">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getChannelsFromName</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getChannelsFromName" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="pyAbacus.core.getCountersID">
 <code class="descclassname">pyAbacus.core.</code><code class="descname">getCountersID</code><span class="sig-paren">(</span><em>abacus_port</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getCountersID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pyAbacus.core.getFollowingCounters">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">getFollowingCounters</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>counters</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getFollowingCounters" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -294,6 +440,11 @@
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="pyAbacus.core.renameDuplicates">
+<code class="descclassname">pyAbacus.core.</code><code class="descname">renameDuplicates</code><span class="sig-paren">(</span><em>old</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.renameDuplicates" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="pyAbacus.core.setAllSettings">
 <code class="descclassname">pyAbacus.core.</code><code class="descname">setAllSettings</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>new_settings</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.setAllSettings" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -305,7 +456,7 @@
 
 <dl class="function">
 <dt id="pyAbacus.core.writeSerial">
-<code class="descclassname">pyAbacus.core.</code><code class="descname">writeSerial</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>command</em>, <em>address</em>, <em>data_u16</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.writeSerial" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pyAbacus.core.</code><code class="descname">writeSerial</code><span class="sig-paren">(</span><em>abacus_port</em>, <em>command</em>, <em>address</em>, <em>data_16o32</em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.writeSerial" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -330,7 +481,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Tausand Electronica.
+        &copy; Copyright 2018, Tausand Electronica
 
     </p>
   </div>
@@ -349,20 +500,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'./',
-            VERSION:'1.0.5',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="_static/jquery.js"></script>
-      <script type="text/javascript" src="_static/underscore.js"></script>
-      <script type="text/javascript" src="_static/doctools.js"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script type="text/javascript" src="_static/language_data.js"></script>
+    
 
   
 
