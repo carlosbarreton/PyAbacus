@@ -22,10 +22,10 @@ import pyAbacus.constants
 def open(abacus_port):
     """
     """
-    global ABACUS_SERIALS, ADDRESS_DIRECTORIES
+    global ABACUS_SERIALS, ADDRESS_DIRECTORIES, DEVICES
     if abacus_port in ABACUS_SERIALS.keys():
         close(abacus_port)
-    serial = AbacusSerial(abacus_port)
+    serial = AbacusSerial(DEVICES[abacus_port])
     ABACUS_SERIALS[abacus_port] = serial
     n = serial.getNChannels()
     if n == 2:
@@ -144,37 +144,51 @@ def getFollowingCounters(abacus_port, counters):
     """
     """
     global COUNTERS_VALUES
-    n = ABACUS_SERIALS[abacus_port].getNChannels()
-    counter = COUNTERS_VALUES[abacus_port]
-    address = ADDRESS_DIRECTORIES[abacus_port]
-    if n == 2:
-        counters = ["counts_%s_LSB"%c for c in counters]
-        multiple_a = []
-        multiple_d = []
-        for c in counters:
-            writeSerial(abacus_port, READ_VALUE, address[c], 2)
-            data = readSerial(abacus_port)
-            array, datas = dataStreamToDataArrays(data)
-            multiple_a += array
-            multiple_d += datas
-        dataArraysToCounters(abacus_port, array, datas)
-    else:
-        counters = ["counts_%s"%c for c in counters]
-        multiple_a = []
-        multiple_d = []
-        for c in counters:
-            writeSerial(abacus_port, READ_VALUE, address[c], 0)
-            data = readSerial(abacus_port)
-            array, datas = dataStreamToDataArrays(data)
-            multiple_a += array
-            multiple_d += datas
-        dataArraysToCounters(abacus_port, array, datas)
+    if len(counters) > 0:
+        n = ABACUS_SERIALS[abacus_port].getNChannels()
+        counter = COUNTERS_VALUES[abacus_port]
+        address = ADDRESS_DIRECTORIES[abacus_port]
+        if n == 2:
+            counters = ["counts_%s_LSB"%c for c in counters]
+            multiple_a = []
+            multiple_d = []
+            for c in counters:
+                writeSerial(abacus_port, READ_VALUE, address[c], 2)
+                data = readSerial(abacus_port)
+                array, datas = dataStreamToDataArrays(data)
+                multiple_a += array
+                multiple_d += datas
+            dataArraysToCounters(abacus_port, array, datas)
+        else:
+            counters = ["counts_%s"%c for c in counters]
+            multiple_a = []
+            multiple_d = []
+            for c in counters:
+                writeSerial(abacus_port, READ_VALUE, address[c], 0)
+                data = readSerial(abacus_port)
+                array, datas = dataStreamToDataArrays(data)
+                multiple_a += array
+                multiple_d += datas
+            dataArraysToCounters(abacus_port, array, datas)
     return COUNTERS_VALUES[abacus_port], getCountersID(abacus_port)
 
 def getAllSettings(abacus_port):
     """
     """
     global SETTINGS
+
+    # if type(SETTINGS[abacus_port]) is Settings2Ch:
+    #     first = ADDRESS_DIRECTORY_2CH["delay_A_ns"]
+    #     last = ADDRESS_DIRECTORY_2CH["coincidence_window_s"]
+    # else:
+    #     first = ADDRESS_DIRECTORY_8CH["delay_A"]
+    #     last = ADDRESS_DIRECTORY_8CH["coincidence_window"]
+    #
+    # writeSerial(abacus_port, READ_VALUE, first, last - first)
+    # data = readSerial(abacus_port)
+    # array, datas = dataStreamToDataArrays(data)
+    # dataArraysToSettings(abacus_port, array, datas)
+
     if type(SETTINGS[abacus_port]) is Settings2Ch:
         first = ADDRESS_DIRECTORY_2CH["delay_A_ns"]
         last = ADDRESS_DIRECTORY_2CH["coincidence_window_s"]
@@ -268,7 +282,7 @@ def setAllSettings(abacus_port, new_settings):
 def findDevices(print_on = True):
     """
     """
-    global CURRENT_OS
+    global CURRENT_OS, DEVICES
     ports_objects = list(find_ports.comports())
     ports = {}
     keys = []
@@ -290,7 +304,7 @@ def findDevices(print_on = True):
             pass
         except Exception as e:
             print(port.device, e)
-
+    DEVICES = ports
     return ports, len(ports)
 
 def renameDuplicates(old):
@@ -463,6 +477,13 @@ class SettingsBase(object):
                 txt = ", sampling time must be one of the following: %s (ms)"%sampling
                 raise(InvalidValueError(txt))
 
+        # elif "sampling_4ch" in setting:
+        #     if not self.valueCheck(value, COINCIDENCE_WINDOW_MINIMUM_VALUE, \
+        #         COINCIDENCE_WINDOW_MAXIMUM_VALUE, COINCIDENCE_WINDOW_STEP_VALUE):
+        #         txt = " (%d <= %d coincidence window (ns) <= %d) with steps of: %d"%(COINCIDENCE_WINDOW_MINIMUM_VALUE, \
+        #         value, COINCIDENCE_WINDOW_MAXIMUM_VALUE, COINCIDENCE_WINDOW_STEP_VALUE)
+        #         raise(InvalidValueError(txt))
+
     def __repr__(self):
         values = ["\t%s"%(self.getSettingStr(c)) for c in self.channels]
         text = "SETTINGS[abacus_port]:\n" + "\n".join(values)
@@ -556,10 +577,10 @@ class Settings48Ch(SettingsBase):
             if (e > 12) or (e < 0) or (c < 10) or (c > 99):
                 raise(InvalidValueError(". %.1e is a value outside range."%number))
             n = self.exponentRepresentationToValue(c, e)
-            if n == number:
+            if abs(n - number) < 1e-10:
                 return c, e
             else:
-                raise(InvalidValueError(". Only two signficant figures are posible: %.3e"%number))
+                raise(InvalidValueError(". Only two signficant figures are posible %f"%number))
 
     def exponentsToBits(self, c, e):
         """

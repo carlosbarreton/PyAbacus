@@ -137,35 +137,36 @@ MAXIMUM_WRITING_TRIES = 20 #: Number of tries done to write a value
 
 
 COINCIDENCE_WINDOW_MINIMUM_VALUE = 5 #: Minimum coincidence window time value (ns).
-COINCIDENCE_WINDOW_MAXIMUM_VALUE = 50000 #: Maximum coincidence window time value (ns).
+COINCIDENCE_WINDOW_MAXIMUM_VALUE = 10000 #: Maximum coincidence window time value (ns).
 COINCIDENCE_WINDOW_STEP_VALUE = 5 #: Increase ratio on the coincidence window time value (ns).
 COINCIDENCE_WINDOW_DEFAULT_VALUE = 5 #: Default coincidence window time value (ns).
 
 DELAY_MINIMUM_VALUE = 0 #: Minimum delay time value (ns).
 DELAY_MAXIMUM_VALUE = 100 #: Maximum delay time value (ns).
 DELAY_STEP_VALUE = 5 #: Increase ratio on the delay time value (ns).
-DELAY_DEFAULT_VALUE = 100 #: Default delay time value (ns).
+DELAY_DEFAULT_VALUE = 0 #: Default delay time value (ns).
 
 SLEEP_MINIMUM_VALUE = 0 #: Minimum sleep time value (ns).
 SLEEP_MAXIMUM_VALUE = 100 #: Maximum sleep time value (ns).
 SLEEP_STEP_VALUE = 5 #: Increase ratio on the sleep time value (ns).
-SLEEP_DEFAULT_VALUE = 25 #: Default sleep time value (ns).
+SLEEP_DEFAULT_VALUE = 0 #: Default sleep time value (ns).
 
 coeff = [1, 2, 5]
 SAMPLING_VALUES = [int(c*10**i) for i in range(6) for c in coeff] + [int(1e6)] #: From (1, 2, 5) ms to 1000 s
-SAMPLING_DEFAULT_VALUE = 100 #: Default sampling time value (ms)
+SAMPLING_DEFAULT_VALUE = 1000 #: Default sampling time value (ms)
 
 SETTINGS = {} #: Global settings variable
 COUNTERS_VALUES = {} #: Global counters values variable
 
 
 BAUDRATE = 115200 #: Default baudrate for the serial port communication
-TIMEOUT = 0.5 #: Maximum time without answer from the serial port
+TIMEOUT = 0.4 #: Maximum time without answer from the serial port
 BOUNCE_TIMEOUT = 40 #: Number of times a specific transmition is tried
 
 TEST_MESSAGE = "*IDN?".encode()
 TEST_ANSWER = "Tausand Abacus"
 
+DEVICES = {}
 ABACUS_SERIALS = {}
 
 DEBUG = False

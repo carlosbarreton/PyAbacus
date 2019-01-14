@@ -4,7 +4,7 @@ import pyAbacus as pa
 pa.constants.DEBUG = False
 
 ports, n = pa.findDevices(False)
-port = ports[list(ports.keys())[0]]
+port = list(ports.keys())[0]
 
 pa.open(port)
 
