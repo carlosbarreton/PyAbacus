@@ -388,7 +388,14 @@ class CountersValues(object):
 
             return msb | lsb
         else:
-            return getattr(self, "%s" % channel)
+            try:
+                return getattr(self, "%s" % channel)
+            except AttributeError as e:
+                if len(channel) > 2:
+                    print("Ignored request for channel: %s" % channel)
+                    return 0
+                else:
+                    raise(e)
 
     def getValues(self, channels):
         """
@@ -477,13 +484,6 @@ class SettingsBase(object):
                 txt = ", sampling time must be one of the following: %s (ms)"%sampling
                 raise(InvalidValueError(txt))
 
-        # elif "sampling_4ch" in setting:
-        #     if not self.valueCheck(value, COINCIDENCE_WINDOW_MINIMUM_VALUE, \
-        #         COINCIDENCE_WINDOW_MAXIMUM_VALUE, COINCIDENCE_WINDOW_STEP_VALUE):
-        #         txt = " (%d <= %d coincidence window (ns) <= %d) with steps of: %d"%(COINCIDENCE_WINDOW_MINIMUM_VALUE, \
-        #         value, COINCIDENCE_WINDOW_MAXIMUM_VALUE, COINCIDENCE_WINDOW_STEP_VALUE)
-        #         raise(InvalidValueError(txt))
-
     def __repr__(self):
         values = ["\t%s"%(self.getSettingStr(c)) for c in self.channels]
         text = "SETTINGS[abacus_port]:\n" + "\n".join(values)
@@ -518,10 +518,14 @@ class Settings48Ch(SettingsBase):
             For all timers: value is in nanoseconds, for sampling in ms.
         """
 
-        self.verifySetting(setting, value)
         if setting == "sampling":
-            c, e = self.valueToExponentRepresentation(value / 1000)
+            if self.valueCheck(value, min(SAMPLING_VALUES), \
+                max(SAMPLING_VALUES), 1):
+                c, e = self.valueToExponentRepresentation(value / 1000)
+            else:
+                raise(InvalidValueError("Sampling value of %d is not valid."%value))
         else:
+            self.verifySetting(setting, value)
             c, e = self.valueToExponentRepresentation(value / int(1e9))
         bits = self.exponentsToBits(c, e)
         setattr(self, setting, bits)

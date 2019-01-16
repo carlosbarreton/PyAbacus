@@ -158,7 +158,6 @@ SAMPLING_DEFAULT_VALUE = 1000 #: Default sampling time value (ms)
 SETTINGS = {} #: Global settings variable
 COUNTERS_VALUES = {} #: Global counters values variable
 
-
 BAUDRATE = 115200 #: Default baudrate for the serial port communication
 TIMEOUT = 0.4 #: Maximum time without answer from the serial port
 BOUNCE_TIMEOUT = 40 #: Number of times a specific transmition is tried
