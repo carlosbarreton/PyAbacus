@@ -121,7 +121,27 @@ ADDRESS_DIRECTORY_8CH = {'counts_A': 0,
            'sampling': 80,
            'coincidence_window': 81,
            'dataID': 83,
-           'time_left': 84}
+           'time_left': 84,
+           # 85
+           # 86
+           # 87
+           'config_custom_c1': 88,
+           'config_custom_c2': 89,
+           'config_custom_c3': 90,
+           'config_custom_c4': 91,
+           'config_custom_c5': 92,
+           'config_custom_c6': 93,
+           'config_custom_c7': 94,
+           'config_custom_c8': 95,
+           'custom_c1': 96,
+           'custom_c2': 97,
+           'custom_c3': 98,
+           'custom_c4': 99,
+           'custom_c5': 100,
+           'custom_c6': 101,
+           'custom_c7': 102,
+           'custom_c8': 103,
+           }
            # 'measure_number': 30,
            # 'time_to_next_sample': 31} #: Memory addresses
 

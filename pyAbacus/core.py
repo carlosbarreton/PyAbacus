@@ -80,7 +80,7 @@ def readSerial(abacus_port):
     global ABACUS_SERIALS
     return ABACUS_SERIALS[abacus_port].readSerial()
 
-def dataStreamToDataArrays(input_string):
+def dataStreamToDataArrays(input_string, chunck_size = 3):
     """
     """
     input_string, n = input_string
@@ -88,11 +88,11 @@ def dataStreamToDataArrays(input_string):
     if test != 0xFF:
         raise(CheckSumError())
     chuncks = input_string[2 : -1] # (addr & MSB & LSB)^n
-    if len(chuncks) % 3 == 0:
+    if chunck_size == 3:
         chuncks = [chuncks[i:i + 3] for i in range(0, n-3, 3)]
         addresses = [chunck[0] for chunck in chuncks]
         data = [(chunck[1] << 8) | (chunck[2]) for chunck in chuncks]
-    elif len(chuncks) % 5 == 0:
+    elif chunck_size == 5:
         chuncks = [chuncks[i:i + 5] for i in range(0, n-5, 5)]
         addresses = [chunck[0] for chunck in chuncks]
         data = [(chunck[1] << 8 * 3) | (chunck[2] << 8 * 2) | (chunck[3] << 8 * 1) | (chunck[4]) for chunck in chuncks]
@@ -134,7 +134,7 @@ def getAllCounters(abacus_port):
         for address in addresses:
             writeSerial(abacus_port, READ_VALUE, address, 0)
             data = readSerial(abacus_port)
-            array, datas = dataStreamToDataArrays(data)
+            array, datas = dataStreamToDataArrays(data, chunck_size = 5)
             multiple_a += array
             multiple_d += datas
         dataArraysToCounters(abacus_port, array, datas)
@@ -160,13 +160,15 @@ def getFollowingCounters(abacus_port, counters):
                 multiple_d += datas
             dataArraysToCounters(abacus_port, array, datas)
         else:
-            counters = ["counts_%s"%c for c in counters]
+            single_double = ["counts_%s"%c for c in counters if len(c) < 3]
+            multiple = ["custom_c%d"%(i + 1) for i in range(len(counters) - len(single_double))]
+            counters = single_double + multiple
             multiple_a = []
             multiple_d = []
             for c in counters:
                 writeSerial(abacus_port, READ_VALUE, address[c], 0)
                 data = readSerial(abacus_port)
-                array, datas = dataStreamToDataArrays(data)
+                array, datas = dataStreamToDataArrays(data, chunck_size = 5)
                 multiple_a += array
                 multiple_d += datas
             dataArraysToCounters(abacus_port, array, datas)
@@ -176,29 +178,35 @@ def getAllSettings(abacus_port):
     """
     """
     global SETTINGS
+    def get(abacus_port, first, last, chunck_size):
+        writeSerial(abacus_port, READ_VALUE, first, last - first + 1)
+        data = readSerial(abacus_port)
+        array, datas = dataStreamToDataArrays(data, chunck_size)
+        dataArraysToSettings(abacus_port, array, datas)
 
-    # if type(SETTINGS[abacus_port]) is Settings2Ch:
-    #     first = ADDRESS_DIRECTORY_2CH["delay_A_ns"]
-    #     last = ADDRESS_DIRECTORY_2CH["coincidence_window_s"]
-    # else:
-    #     first = ADDRESS_DIRECTORY_8CH["delay_A"]
-    #     last = ADDRESS_DIRECTORY_8CH["coincidence_window"]
-    #
-    # writeSerial(abacus_port, READ_VALUE, first, last - first)
-    # data = readSerial(abacus_port)
-    # array, datas = dataStreamToDataArrays(data)
-    # dataArraysToSettings(abacus_port, array, datas)
+    tp =  type(SETTINGS[abacus_port])
 
-    if type(SETTINGS[abacus_port]) is Settings2Ch:
+    if tp is Settings2Ch:
         first = ADDRESS_DIRECTORY_2CH["delay_A_ns"]
         last = ADDRESS_DIRECTORY_2CH["coincidence_window_s"]
-        writeSerial(abacus_port, READ_VALUE, first, last - first)
-        data = readSerial(abacus_port)
-        array, datas = dataStreamToDataArrays(data)
-        dataArraysToSettings(abacus_port, array, datas)
-    else:
-        for setting in SETTINGS[abacus_port].getChannels():
-            getSetting(abacus_port, setting)
+        get(abacus_port, first, last, 3)
+    elif tp is Settings4Ch:
+        first = ADDRESS_DIRECTORY_8CH["delay_A"]
+        last = ADDRESS_DIRECTORY_8CH["delay_D"]
+        get(abacus_port, first, last, 5)
+        first = ADDRESS_DIRECTORY_8CH["sleep_A"]
+        last = ADDRESS_DIRECTORY_8CH["sleep_D"]
+        get(abacus_port, first, last, 5)
+        first = ADDRESS_DIRECTORY_8CH["sampling"]
+        last = ADDRESS_DIRECTORY_8CH["coincidence_window"]
+        get(abacus_port, first, last, 5)
+        first = ADDRESS_DIRECTORY_8CH["config_custom_c1"]
+        get(abacus_port, first, first, 5)
+
+    elif tp is Settings8Ch:
+        first = ADDRESS_DIRECTORY_8CH["delay_A"]
+        last = ADDRESS_DIRECTORY_8CH["coincidence_window"]
+        get(abacus_port, first, last)
 
     return SETTINGS[abacus_port]
 
@@ -217,7 +225,10 @@ def getSetting(abacus_port, setting):
         writeSerial(abacus_port, READ_VALUE, addr, 0)
 
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
+    if ABACUS_SERIALS[abacus_port].getNChannels() == 2:
+        array, datas = dataStreamToDataArrays(data)
+    else:
+        array, datas = dataStreamToDataArrays(data, chunck_size = 5)
     dataArraysToSettings(abacus_port, array, datas)
 
     return SETTINGS[abacus_port].getSetting(setting)
@@ -235,8 +246,10 @@ def getCountersID(abacus_port):
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORIES[abacus_port]["dataID"], 0)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
-
+    if ABACUS_SERIALS[abacus_port].getNChannels() == 2:
+        array, datas = dataStreamToDataArrays(data)
+    else:
+        array, datas = dataStreamToDataArrays(data, chunck_size = 5)
     COUNTERS_VALUES[abacus_port].setCountersID(datas[0])
     return datas[0]
 
@@ -247,7 +260,10 @@ def getTimeLeft(abacus_port):
 
     writeSerial(abacus_port, READ_VALUE, ADDRESS_DIRECTORIES[abacus_port]["time_left"], 0)
     data = readSerial(abacus_port)
-    array, datas = dataStreamToDataArrays(data)
+    if ABACUS_SERIALS[abacus_port].getNChannels() == 2:
+        array, datas = dataStreamToDataArrays(data)
+    else:
+        array, datas = dataStreamToDataArrays(data, chunck_size = 5)
     COUNTERS_VALUES[abacus_port].setTimeLeft(datas[0])
     return COUNTERS_VALUES[abacus_port].getTimeLeft()
 
@@ -319,6 +335,19 @@ def renameDuplicates(old):
             seen[x] = 0
             yield x
 
+def customBinaryToLetters(number):
+    binary = bin(number)[2:]
+    n = len(binary)
+    if n < 8: binary = '0' * (8 - n) + binary
+    letters = [chr(i + ord('A')) for i in range(8) if binary[i] == '1']
+    return ''.join(letters)
+
+def customLettersToBinary(letters):
+    valid = [chr(i + ord('A')) for i in range(8)]
+    numbers = ['1' if valid[i] in letters else '0' for i in range(8)]
+    number = int('0b' + ''.join(numbers), base = 2)
+    return number
+
 class CountersValues(object):
     """
     """
@@ -370,6 +399,17 @@ class CountersValues(object):
         else:
             self.addresses[83] = 'dataID'
             self.addresses[84] = 'time_left'
+            self.addresses[96] = 'custom_c1'
+            if n_channels > 4:
+                self.addresses[83] = 'dataID'
+                self.addresses[84] = 'time_left'
+                self.addresses[97] = 'custom_c2'
+                self.addresses[98] = 'custom_c3'
+                self.addresses[99] = 'custom_c4'
+                self.addresses[100] = 'custom_c5'
+                self.addresses[101] = 'custom_c6'
+                self.addresses[102] = 'custom_c7'
+                self.addresses[103] = 'custom_c8'
 
         self.counters_id = 0
         self.time_left = 0 #: in ms
@@ -388,14 +428,7 @@ class CountersValues(object):
 
             return msb | lsb
         else:
-            try:
-                return getattr(self, "%s" % channel)
-            except AttributeError as e:
-                if len(channel) > 2:
-                    print("Ignored request for channel: %s" % channel)
-                    return 0
-                else:
-                    raise(e)
+            return getattr(self, "%s" % channel)
 
     def getValues(self, channels):
         """
@@ -517,17 +550,19 @@ class Settings48Ch(SettingsBase):
         """
             For all timers: value is in nanoseconds, for sampling in ms.
         """
-
-        if setting == "sampling":
-            if self.valueCheck(value, min(SAMPLING_VALUES), \
-                max(SAMPLING_VALUES), 1):
-                c, e = self.valueToExponentRepresentation(value / 1000)
-            else:
-                raise(InvalidValueError("Sampling value of %d is not valid."%value))
+        if 'custom' in setting:
+            bits = customLettersToBinary(value)
         else:
-            self.verifySetting(setting, value)
-            c, e = self.valueToExponentRepresentation(value / int(1e9))
-        bits = self.exponentsToBits(c, e)
+            if setting == "sampling":
+                if self.valueCheck(value, min(SAMPLING_VALUES), \
+                    max(SAMPLING_VALUES), 1):
+                    c, e = self.valueToExponentRepresentation(value / 1000)
+                else:
+                    raise(InvalidValueError("Sampling value of %d is not valid."%value))
+            else:
+                self.verifySetting(setting, value)
+                c, e = self.valueToExponentRepresentation(value / int(1e9))
+            bits = self.exponentsToBits(c, e)
         setattr(self, setting, bits)
 
     def getSetting(self, timer):
@@ -535,10 +570,13 @@ class Settings48Ch(SettingsBase):
             For all timers: returns nanoseconds, for sampling returns ms.
         """
         bits = getattr(self, timer)
-        value = self.fromBitsToValue(bits)
-        if timer == "sampling":
-            return value * 1000
-        return value * int(1e9)
+        if 'custom' in timer:
+            return customBinaryToLetters(bits)
+        else:
+            value = self.fromBitsToValue(bits)
+            if timer == "sampling":
+                return value * 1000
+            return value * int(1e9)
 
     def getAddressAndValue(self, timer):
         """
@@ -663,7 +701,7 @@ class Settings4Ch(Settings48Ch):
         super(Settings4Ch, self).__init__()
         self.channels = ['delay_A', 'delay_B', 'delay_C', 'delay_D',
                         'sleep_A', 'sleep_B', 'sleep_C', 'sleep_D',
-                        'coincidence_window', 'sampling']
+                        'coincidence_window', 'sampling', 'config_custom_c1']
 
         self.initAddreses()
 
@@ -677,7 +715,10 @@ class Settings8Ch(Settings48Ch):
                         'delay_E', 'delay_F', 'delay_G', 'delay_H',
                         'sleep_A', 'sleep_B', 'sleep_C', 'sleep_D',
                         'sleep_E', 'sleep_F', 'sleep_G', 'sleep_H',
-                        'coincidence_window', 'sampling']
+                        'coincidence_window', 'sampling', 'config_custom_c1',
+                        'config_custom_c2', 'config_custom_c3', 'config_custom_c4',
+                        'config_custom_c5', 'config_custom_c6', 'config_custom_c7',
+                         'config_custom_c8']
 
         self.initAddreses()
 
@@ -694,7 +735,7 @@ class AbacusSerial(serial.Serial):
             self.n_channels = getChannelsFromName(self.getIdn())
         else:
             if pyAbacus.constants.DEBUG:
-                print(port.device, "answered: %s"%serial.getIdn())
+                print(port, "answered: %s"%self.getIdn())
             self.close()
             raise(AbacusError("Not a valid abacus."))
 
