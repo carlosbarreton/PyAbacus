@@ -85,20 +85,24 @@ def dataStreamToDataArrays(input_string, chunck_size = 3):
     """
     input_string, n = input_string
     test = sum(input_string[2:]) & 0xFF # 8 bit
-    if test != 0xFF:
-        raise(CheckSumError())
-    chuncks = input_string[2 : -1] # (addr & MSB & LSB)^n
-    if chunck_size == 3:
-        chuncks = [chuncks[i:i + 3] for i in range(0, n-3, 3)]
-        addresses = [chunck[0] for chunck in chuncks]
-        data = [(chunck[1] << 8) | (chunck[2]) for chunck in chuncks]
-    elif chunck_size == 5:
-        chuncks = [chuncks[i:i + 5] for i in range(0, n-5, 5)]
-        addresses = [chunck[0] for chunck in chuncks]
-        data = [(chunck[1] << 8 * 3) | (chunck[2] << 8 * 2) | (chunck[3] << 8 * 1) | (chunck[4]) for chunck in chuncks]
+    # if test != 0xFF:
+    #     raise(CheckSumError())
+    if test == 0xFF:
+        chuncks = input_string[2 : -1] # (addr & MSB & LSB)^n
+        if chunck_size == 3:
+            chuncks = [chuncks[i:i + 3] for i in range(0, n-3, 3)]
+            addresses = [chunck[0] for chunck in chuncks]
+            data = [(chunck[1] << 8) | (chunck[2]) for chunck in chuncks]
+        elif chunck_size == 5:
+            chuncks = [chuncks[i:i + 5] for i in range(0, n-5, 5)]
+            addresses = [chunck[0] for chunck in chuncks]
+            data = [(chunck[1] << 8 * 3) | (chunck[2] << 8 * 2) | (chunck[3] << 8 * 1) | (chunck[4]) for chunck in chuncks]
+        else:
+            raise(AbacusError("Input string is not valid chuck size must either be 3 or 5."))
+        return addresses, data
     else:
-        raise(AbacusError("Input string is not valid chuck size must either be 3 or 5."))
-    return addresses, data
+        if pyAbacus.constants.DEBUG: print("CheckSumError")
+        return [], []
 
 def dataArraysToCounters(abacus_port, addresses, data):
     """
@@ -782,22 +786,29 @@ class AbacusSerial(serial.Serial):
     def readSerial(self):
         """
         """
-        for i in range(BOUNCE_TIMEOUT):
-            val = self.read()
-            if val != b"":
-                val = val[0]
-                if pyAbacus.constants.DEBUG: print('readSerial:', val)
-                if val == 0x7E:
-                    break
-        if i == BOUNCE_TIMEOUT - 1:
-            raise(TimeOutError())
+        # for i in range(BOUNCE_TIMEOUT):
+        #     val = self.read()
+        #     if val != b"":
+        #         val = val[0]
+        #         if pyAbacus.constants.DEBUG: print('readSerial:', val)
+        #         if val == 0x7E:
+        #             break
+        # if i == BOUNCE_TIMEOUT - 1:
+        #     raise(TimeOutError())
 
-        numbytes = self.read()[0]
-        bytes_read = list(self.read(numbytes))
-        checksum = self.read()[0]
-        message = [0x7E, numbytes] +  bytes_read + [checksum], numbytes + 3
-        if pyAbacus.constants.DEBUG: print('readSerial:', message)
-        return message
+        try:
+            if self.read()[0] == 0x7E:
+                numbytes = self.read()[0]
+                bytes_read = list(self.read(numbytes))
+                checksum = self.read()[0]
+                message = [0x7E, numbytes] +  bytes_read + [checksum], numbytes + 3
+                if pyAbacus.constants.DEBUG: print('readSerial:', message)
+                return message
+        except IndexError:
+            pass
+        if pyAbacus.constants.DEBUG:
+            print("Error on readSerial")
+        return [], 0
 
     def getNChannels(self):
         """
