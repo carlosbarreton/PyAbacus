@@ -132,16 +132,19 @@ def getAllCounters(abacus_port):
         array, datas = dataStreamToDataArrays(data)
         dataArraysToCounters(abacus_port, array, datas)
     else:
-        addresses = list(counters.getNumericAddresses().keys())
-        multiple_a = []
-        multiple_d = []
-        for address in addresses:
-            writeSerial(abacus_port, READ_VALUE, address, 0)
-            data = readSerial(abacus_port)
-            array, datas = dataStreamToDataArrays(data, chunck_size = 5)
-            multiple_a += array
-            multiple_d += datas
-        dataArraysToCounters(abacus_port, array, datas)
+        mode = 1 << 24
+        writeSerial(abacus_port, READ_VALUE, 0, mode & 0x00)
+        data = readSerial(abacus_port)
+        # addresses = list(counters.getNumericAddresses().keys())
+        # multiple_a = []
+        # multiple_d = []
+        # for address in addresses:
+        #     writeSerial(abacus_port, READ_VALUE, address, 0)
+        #     data = readSerial(abacus_port)
+        #     array, datas = dataStreamToDataArrays(data, chunck_size = 5)
+        #     multiple_a += array
+        #     multiple_d += datas
+        # dataArraysToCounters(abacus_port, array, datas)
     return COUNTERS_VALUES[abacus_port], getCountersID(abacus_port)
 
 def getFollowingCounters(abacus_port, counters):
