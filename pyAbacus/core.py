@@ -85,24 +85,24 @@ def dataStreamToDataArrays(input_string, chunck_size = 3):
     """
     input_string, n = input_string
     test = sum(input_string[2:]) & 0xFF # 8 bit
-    # if test != 0xFF:
-    #     raise(CheckSumError())
-    if test == 0xFF:
-        chuncks = input_string[2 : -1] # (addr & MSB & LSB)^n
-        if chunck_size == 3:
-            chuncks = [chuncks[i:i + 3] for i in range(0, n-3, 3)]
-            addresses = [chunck[0] for chunck in chuncks]
-            data = [(chunck[1] << 8) | (chunck[2]) for chunck in chuncks]
-        elif chunck_size == 5:
-            chuncks = [chuncks[i:i + 5] for i in range(0, n-5, 5)]
-            addresses = [chunck[0] for chunck in chuncks]
-            data = [(chunck[1] << 8 * 3) | (chunck[2] << 8 * 2) | (chunck[3] << 8 * 1) | (chunck[4]) for chunck in chuncks]
-        else:
-            raise(AbacusError("Input string is not valid chuck size must either be 3 or 5."))
-        return addresses, data
+    if test != 0xFF:
+        raise(CheckSumError())
+    # if test == 0xFF:
+    chuncks = input_string[2 : -1] # (addr & MSB & LSB)^n
+    if chunck_size == 3:
+        chuncks = [chuncks[i:i + 3] for i in range(0, n-3, 3)]
+        addresses = [chunck[0] for chunck in chuncks]
+        data = [(chunck[1] << 8) | (chunck[2]) for chunck in chuncks]
+    elif chunck_size == 5:
+        chuncks = [chuncks[i:i + 5] for i in range(0, n-5, 5)]
+        addresses = [chunck[0] for chunck in chuncks]
+        data = [(chunck[1] << 8 * 3) | (chunck[2] << 8 * 2) | (chunck[3] << 8 * 1) | (chunck[4]) for chunck in chuncks]
     else:
-        if pyAbacus.constants.DEBUG: print("CheckSumError")
-        return [], []
+        raise(AbacusError("Input string is not valid chuck size must either be 3 or 5."))
+    return addresses, data
+    # else:
+    #     if pyAbacus.constants.DEBUG: print("CheckSumError")
+    #     return [], []
 
 def dataArraysToCounters(abacus_port, addresses, data):
     """
@@ -132,19 +132,16 @@ def getAllCounters(abacus_port):
         array, datas = dataStreamToDataArrays(data)
         dataArraysToCounters(abacus_port, array, datas)
     else:
-        mode = 1 << 24
-        writeSerial(abacus_port, READ_VALUE, 0, mode & 0x00)
-        data = readSerial(abacus_port)
-        # addresses = list(counters.getNumericAddresses().keys())
-        # multiple_a = []
-        # multiple_d = []
-        # for address in addresses:
-        #     writeSerial(abacus_port, READ_VALUE, address, 0)
-        #     data = readSerial(abacus_port)
-        #     array, datas = dataStreamToDataArrays(data, chunck_size = 5)
-        #     multiple_a += array
-        #     multiple_d += datas
-        # dataArraysToCounters(abacus_port, array, datas)
+        multiple_a = []
+        multiple_d = []
+        addresses_and_nchannels = [(0, 4), (9, 3), (18, 2), (27, 0), (96, 0)]
+        for info in addresses_and_nchannels:
+            writeSerial(abacus_port, READ_VALUE, *info)
+            data = readSerial(abacus_port)
+            array, datas = dataStreamToDataArrays(data, chunck_size = 5)
+            multiple_a += array
+            multiple_d += datas
+        dataArraysToCounters(abacus_port, multiple_a, multiple_d)
     return COUNTERS_VALUES[abacus_port], getCountersID(abacus_port)
 
 def getFollowingCounters(abacus_port, counters):
@@ -257,8 +254,9 @@ def getCountersID(abacus_port):
         array, datas = dataStreamToDataArrays(data)
     else:
         array, datas = dataStreamToDataArrays(data, chunck_size = 5)
-    COUNTERS_VALUES[abacus_port].setCountersID(datas[0])
-    return datas[0]
+    if datas:
+        COUNTERS_VALUES[abacus_port].setCountersID(datas[0])
+    return COUNTERS_VALUES[abacus_port].getCountersID()
 
 def getTimeLeft(abacus_port):
     """
@@ -596,6 +594,8 @@ class Settings48Ch(SettingsBase):
         value = self.getSetting(timer)
         unit = "ns"
         if timer == "sampling": unit = "ms"
+        if 'config_custom' in timer:
+            return "%s: %s"%(timer, value)
         return "%s (%s): %d"%(timer, unit, value)
 
     def fromBitsToValue(self, bits):
@@ -733,9 +733,8 @@ class AbacusSerial(serial.Serial):
     """
         Builds a serial port from pyserial.
     """
-    def __init__(self, port, bounce_timeout = BOUNCE_TIMEOUT):
+    def __init__(self, port):
         super(AbacusSerial, self).__init__(port, baudrate = BAUDRATE, timeout = TIMEOUT)
-        self.bounce_timeout = bounce_timeout
         self.idn = ""
         self.flush()
         if self.testDevice():
@@ -789,16 +788,6 @@ class AbacusSerial(serial.Serial):
     def readSerial(self):
         """
         """
-        # for i in range(BOUNCE_TIMEOUT):
-        #     val = self.read()
-        #     if val != b"":
-        #         val = val[0]
-        #         if pyAbacus.constants.DEBUG: print('readSerial:', val)
-        #         if val == 0x7E:
-        #             break
-        # if i == BOUNCE_TIMEOUT - 1:
-        #     raise(TimeOutError())
-
         try:
             if self.read()[0] == 0x7E:
                 numbytes = self.read()[0]
