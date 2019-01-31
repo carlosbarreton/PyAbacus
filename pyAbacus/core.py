@@ -162,7 +162,7 @@ def getFollowingCounters(abacus_port, counters):
                 array, datas = dataStreamToDataArrays(data)
                 multiple_a += array
                 multiple_d += datas
-            dataArraysToCounters(abacus_port, array, datas)
+            dataArraysToCounters(abacus_port, multiple_a, multiple_d)
         else:
             single_double = ["counts_%s"%c for c in counters if len(c) < 3]
             multiple = ["custom_c%d"%(i + 1) for i in range(len(counters) - len(single_double))]
@@ -175,7 +175,7 @@ def getFollowingCounters(abacus_port, counters):
                 array, datas = dataStreamToDataArrays(data, chunck_size = 5)
                 multiple_a += array
                 multiple_d += datas
-            dataArraysToCounters(abacus_port, array, datas)
+            dataArraysToCounters(abacus_port, multiple_a, multiple_d)
     return COUNTERS_VALUES[abacus_port], getCountersID(abacus_port)
 
 def getAllSettings(abacus_port):
