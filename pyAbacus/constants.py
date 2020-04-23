@@ -159,7 +159,7 @@ MAXIMUM_WRITING_TRIES = 20 #: Number of tries done to write a value
 COINCIDENCE_WINDOW_MINIMUM_VALUE = 5 #: Minimum coincidence window time value (ns).
 COINCIDENCE_WINDOW_MAXIMUM_VALUE = 10000 #: Maximum coincidence window time value (ns).
 COINCIDENCE_WINDOW_STEP_VALUE = 5 #: Increase ratio on the coincidence window time value (ns).
-COINCIDENCE_WINDOW_DEFAULT_VALUE = 5 #: Default coincidence window time value (ns).
+COINCIDENCE_WINDOW_DEFAULT_VALUE = 10 #: Default coincidence window time value (ns).
 
 DELAY_MINIMUM_VALUE = 0 #: Minimum delay time value (ns).
 DELAY_MAXIMUM_VALUE = 100 #: Maximum delay time value (ns).
@@ -188,4 +188,4 @@ TEST_ANSWER = "Tausand Abacus"
 DEVICES = {}
 ABACUS_SERIALS = {}
 
-DEBUG = False
+DEBUG = True #False
