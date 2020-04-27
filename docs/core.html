@@ -446,8 +446,9 @@ List of valid ports, and its length.</p>
 <code class="sig-prename descclassname">pyAbacus.core.</code><code class="sig-name descname">getAllCounters</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abacus_port</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getAllCounters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Reads all counters from a Tausand Abacus device.</p>
 <p>With a single call, this function reads all the counters within the device, including single-channel counters, 2-fold coincidence counters and multi-fold coincidence counters.</p>
-<dl>
-<dt>Example:</dt><dd><p>counters, counters_id = getAllCounters(‘COM3’)</p>
+<p>Example:</p>
+<blockquote>
+<div><p>counters, counters_id = getAllCounters(‘COM3’)</p>
 <p>Reads data from the device in port ‘COM3’, and might return for example,</p>
 <div class="line-block">
 <div class="line">counters = {A:1023, B:1038, AB: 201}</div>
@@ -459,7 +460,8 @@ List of valid ports, and its length.</p>
 <div class="line">counters_id = 37</div>
 </div>
 <p>meaning that this is the 37th measurement made by the device, and the measurements were 1023 counts in A, 1038 counts in B, and 201 coincidences between A and B.</p>
-</dd>
+</div></blockquote>
+<dl class="simple">
 <dt>Args:</dt><dd><p>abacus_port: device port.</p>
 </dd>
 <dt>Returns:</dt><dd><p>CountersValues class object including counter values as registered within the device, and the sequential number of the reading.</p>
@@ -486,7 +488,7 @@ List of valid ports, and its length.</p>
 </dd>
 <dt>Args:</dt><dd><p>abacus_port: device port.</p>
 </dd>
-<dt>Returns:</dt><dd><p>List of settings as registered within the device.</p>
+<dt>Returns:</dt><dd><p>Settings2ch, Settings4ch or Settings8ch class object including all setting values as registered within the device.</p>
 </dd>
 </dl>
 </dd></dl>

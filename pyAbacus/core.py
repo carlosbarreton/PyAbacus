@@ -299,8 +299,7 @@ def getAllSettings(abacus_port):
         abacus_port: device port.
 
     Returns:
-        List of settings as registered within the device.
-
+	Settings2ch, Settings4ch or Settings8ch class object including all setting values as registered within the device.
     """
     global SETTINGS
     def get(abacus_port, first, last, chunck_size):
