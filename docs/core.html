@@ -161,7 +161,8 @@
 <dl class="py method">
 <dt id="pyAbacus.core.AbacusSerial.findIdn">
 <code class="sig-name descname">findIdn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.findIdn" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Requests the device for its string identificator (IDN) using serial port.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pyAbacus.core.AbacusSerial.flush">
@@ -171,12 +172,14 @@
 <dl class="py method">
 <dt id="pyAbacus.core.AbacusSerial.getIdn">
 <code class="sig-name descname">getIdn</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.getIdn" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the device string identificator (IDN) from local memory.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pyAbacus.core.AbacusSerial.getNChannels">
 <code class="sig-name descname">getNChannels</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.AbacusSerial.getNChannels" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the number of input channels in the device.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pyAbacus.core.AbacusSerial.readSerial">
@@ -198,10 +201,12 @@
 <dl class="py class">
 <dt id="pyAbacus.core.CountersValues">
 <em class="property">class </em><code class="sig-prename descclassname">pyAbacus.core.</code><code class="sig-name descname">CountersValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">n_channels</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="py method">
+<dd><p>Keeps a set of measurements from counters within a device.</p>
+<dl class="py method">
 <dt id="pyAbacus.core.CountersValues.getCountersID">
 <code class="sig-name descname">getCountersID</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getCountersID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the <em>counters_id</em> (consecutive number of measurements) field from a set of measurements.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pyAbacus.core.CountersValues.getNumericAddresses">
@@ -211,7 +216,8 @@
 <dl class="py method">
 <dt id="pyAbacus.core.CountersValues.getTimeLeft">
 <code class="sig-name descname">getTimeLeft</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getTimeLeft" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the <em>time_left</em> (time in ms for next measurement to be available) field from a set of measurements.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pyAbacus.core.CountersValues.getValue">
@@ -406,9 +412,13 @@
 <dd><p>Builds data from string read on serial port.</p>
 <dl>
 <dt>Args:</dt><dd><p>input_string: stream of bytes to convert. Should have the appropriate format, as given by a Tausand Abacus device.</p>
-<p>chunck_size : integer, number of bytes per single data row.
-Use chunck_size=3 for devices with inner 16-bit registers e.g. Tausand Abacus AB1002, where byte streams are: {address,MSB,LSB}.
-Use chunck_size=5 for devices with inner 32-bit registers e.g. Tausand Abacus AB1004, where byte streams are: {address,MSB,2nd-MSB,2nd-LSB,LSB}.</p>
+<div class="line-block">
+<div class="line">chunck_size : integer, number of bytes per single data row.</div>
+<div class="line-block">
+<div class="line">-  Use chunck_size=3 for devices with inner 16-bit registers e.g. Tausand Abacus AB1002, where byte streams are: {address,MSB,LSB}.</div>
+<div class="line">-  Use chunck_size=5 for devices with inner 32-bit registers e.g. Tausand Abacus AB1004, where byte streams are: {address,MSB,2nd-MSB,2nd-LSB,LSB}.</div>
+</div>
+</div>
 </dd>
 <dt>Returns:</dt><dd><p>Two lists of integer values: addresses, data.</p>
 </dd>
@@ -439,13 +449,20 @@ List of valid ports, and its length.</p>
 <dl>
 <dt>Example:</dt><dd><p>counters, counters_id = getAllCounters(‘COM3’)</p>
 <p>Reads data from the device in port ‘COM3’, and might return for example,</p>
-<p>counters = [A:1023, B:1038, AB: 201]</p>
-<p>counters_id = 37</p>
+<div class="line-block">
+<div class="line">counters = {A:1023, B:1038, AB: 201}</div>
+<div class="line-block">
+<div class="line">counters.A = 1023</div>
+<div class="line">counters.B = 1038</div>
+<div class="line">counters.AB = 201</div>
+</div>
+<div class="line">counters_id = 37</div>
+</div>
 <p>meaning that this is the 37th measurement made by the device, and the measurements were 1023 counts in A, 1038 counts in B, and 201 coincidences between A and B.</p>
 </dd>
 <dt>Args:</dt><dd><p>abacus_port: device port.</p>
 </dd>
-<dt>Returns:</dt><dd><p>List of counter values as registered within the device, and the sequential number of the reading.</p>
+<dt>Returns:</dt><dd><p>CountersValues class object including counter values as registered within the device, and the sequential number of the reading.</p>
 </dd>
 </dl>
 </dd></dl>
@@ -456,10 +473,16 @@ List of valid ports, and its length.</p>
 <dd><p>Reads all settings from a Tausand Abacus device.</p>
 <p>With a single call, this function reads all the settings within the device, including sampling time, coincidence window, delay per channel and sleep time per channel.</p>
 <dl>
-<dt>Example:</dt><dd><p>settings = getAllCounters(‘COM3’)</p>
+<dt>Example:</dt><dd><p>settings = getAllSettings(‘COM3’)</p>
 <p>Reads settings from the device in port ‘COM3’, and might return for example,</p>
-<p>[sampling:1000, delay_A:0, delay_B:0]</p>
-<p>meaning that sampling time is 1000ms, and no delay is added in channels A or B.</p>
+<div class="line-block">
+<div class="line">delay_A (ns): 0</div>
+<div class="line">delay_B (ns): 20</div>
+<div class="line">sleep_A (ns): 0</div>
+<div class="line">sleep_B (ns): 0</div>
+<div class="line">coincidence_window (ns): 10</div>
+<div class="line">sampling (ms): 1300</div>
+</div>
 </dd>
 <dt>Args:</dt><dd><p>abacus_port: device port.</p>
 </dd>
@@ -509,7 +532,12 @@ List of valid ports, and its length.</p>
 <dd><p>Reads the identifier string model (IDN) from a Tausand Abacus.</p>
 <dl>
 <dt>Example:</dt><dd><p>myidn = getIdn(‘COM3’)</p>
-<p>might return myidn = “Tausand Abacus AB1002”</p>
+<div class="line-block">
+<div class="line">might return </div>
+<div class="line-block">
+<div class="line">myidn = “Tausand Abacus AB1002”</div>
+</div>
+</div>
 </dd>
 <dt>Args:</dt><dd><p>abacus_port: device port.</p>
 </dd>
@@ -570,6 +598,9 @@ List of valid ports, and its length.</p>
 <code class="sig-prename descclassname">pyAbacus.core.</code><code class="sig-name descname">setSetting</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abacus_port</span></em>, <em class="sig-param"><span class="n">setting</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.setSetting" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sets a configuration setting within a Tausand Abacus.</p>
 <dl>
+<dt>Example:</dt><dd><p>setSetting(‘COM3’ , ‘sampling’ , 1300)</p>
+<p>sets the sampling time to 1300 ms to a device in port ‘COM3’.</p>
+</dd>
 <dt>Args:</dt><dd><p>abacus_port: device port</p>
 <p>setting: name of the setting to be written. Valid strings are: “sampling”, “coincidence_window”, “delay_N”, “sleep_N”, where “N” refers to a channel (A,B,C,D,…).</p>
 <p>value: new value for the setting. For “sampling”, value in ms; for other settings, value in ns.</p>
@@ -605,7 +636,7 @@ List of valid ports, and its length.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2018, Tausand Electronica
+        &copy; Copyright 2020, Tausand Electronica
 
     </p>
   </div>
