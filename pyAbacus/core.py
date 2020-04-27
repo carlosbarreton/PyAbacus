@@ -127,9 +127,9 @@ def dataStreamToDataArrays(input_string, chunck_size = 3):
     Args:
         input_string: stream of bytes to convert. Should have the appropriate format, as given by a Tausand Abacus device.
 
-        chunck_size : integer, number of bytes per single data row.
-        Use chunck_size=3 for devices with inner 16-bit registers e.g. Tausand Abacus AB1002, where byte streams are: {address,MSB,LSB}.
-        Use chunck_size=5 for devices with inner 32-bit registers e.g. Tausand Abacus AB1004, where byte streams are: {address,MSB,2nd-MSB,2nd-LSB,LSB}.
+        | chunck_size : integer, number of bytes per single data row.
+        |   -  Use chunck_size=3 for devices with inner 16-bit registers e.g. Tausand Abacus AB1002, where byte streams are: {address,MSB,LSB}.
+        |   -  Use chunck_size=5 for devices with inner 32-bit registers e.g. Tausand Abacus AB1004, where byte streams are: {address,MSB,2nd-MSB,2nd-LSB,LSB}.
 
     Returns:
         Two lists of integer values: addresses, data.
@@ -203,13 +203,16 @@ def getAllCounters(abacus_port):
     With a single call, this function reads all the counters within the device, including single-channel counters, 2-fold coincidence counters and multi-fold coincidence counters.
 
     Example:
+
         counters, counters_id = getAllCounters('COM3')
 
         Reads data from the device in port 'COM3', and might return for example,
 
-        counters = [A:1023, B:1038, AB: 201]
-
-        counters_id = 37
+        | counters = {A:1023, B:1038, AB: 201}
+        |    counters.A = 1023
+        |    counters.B = 1038
+        |    counters.AB = 201
+        | counters_id = 37
 
         meaning that this is the 37th measurement made by the device, and the measurements were 1023 counts in A, 1038 counts in B, and 201 coincidences between A and B.
 
@@ -217,7 +220,7 @@ def getAllCounters(abacus_port):
         abacus_port: device port.
 
     Returns:
-        List of counter values as registered within the device, and the sequential number of the reading.
+        CountersValues class object including counter values as registered within the device, and the sequential number of the reading.
 
     """
     global COUNTERS_VALUES
@@ -281,13 +284,16 @@ def getAllSettings(abacus_port):
     With a single call, this function reads all the settings within the device, including sampling time, coincidence window, delay per channel and sleep time per channel.
 
     Example:
-        settings = getAllCounters('COM3')
+        settings = getAllSettings('COM3')
 
         Reads settings from the device in port 'COM3', and might return for example,
 
-        [sampling:1000, delay_A:0, delay_B:0]
-        
-        meaning that sampling time is 1000ms, and no delay is added in channels A or B.
+        |  delay_A (ns): 0
+        |  delay_B (ns): 20
+        |  sleep_A (ns): 0
+        |  sleep_B (ns): 0
+        |  coincidence_window (ns): 10
+        |  sampling (ms): 1300
 
     Args:
         abacus_port: device port.
@@ -367,7 +373,8 @@ def getIdn(abacus_port):
     Example:
         myidn = getIdn('COM3')
 
-        might return myidn = "Tausand Abacus AB1002"
+        | might return 
+        |     myidn = "Tausand Abacus AB1002"
 
     Args:
         abacus_port: device port.
@@ -429,6 +436,11 @@ def getTimeLeft(abacus_port):
 
 def setSetting(abacus_port, setting, value):
     """Sets a configuration setting within a Tausand Abacus.
+
+    Example:
+        setSetting('COM3' , 'sampling' , 1300)
+
+        sets the sampling time to 1300 ms to a device in port 'COM3'.
 
     Args:
         abacus_port: device port
@@ -544,7 +556,7 @@ def setConstantsByResolution(resolution_ns): #(2020-04-23 by DGuzman)
     
 
 class CountersValues(object):
-    """
+    """Keeps a set of measurements from counters within a device.
     """
     def __init__(self, n_channels):
         if not n_channels in [2, 4, 8]:
@@ -637,7 +649,7 @@ class CountersValues(object):
         return "(%d) "%self.getCountersID() + ", ".join(values)
 
     def getCountersID(self):
-        """
+        """Gets the *counters_id* (consecutive number of measurements) field from a set of measurements.
         """
         return self.counters_id
 
@@ -647,7 +659,7 @@ class CountersValues(object):
         self.counters_id = id
 
     def getTimeLeft(self):
-        """
+        """Gets the *time_left* (time in ms for next measurement to be available) field from a set of measurements.
         """
         return self.time_left
 
@@ -946,6 +958,7 @@ class AbacusSerial(serial.Serial):
 
     def findIdn(self):
         """
+        Requests the device for its string identificator (IDN) using serial port.
         """
         self.write(TEST_MESSAGE)
         self.idn = self.read(21).decode()
@@ -954,6 +967,7 @@ class AbacusSerial(serial.Serial):
 
     def getIdn(self):
         """
+	Gets the device string identificator (IDN) from local memory.
         """
         return self.idn
 
@@ -996,7 +1010,7 @@ class AbacusSerial(serial.Serial):
         return [], 0
 
     def getNChannels(self):
-        """
+        """Gets the number of input channels in the device.
         """
         return self.n_channels
 

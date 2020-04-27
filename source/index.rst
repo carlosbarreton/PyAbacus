@@ -5,15 +5,15 @@
 
 .. figure:: logo.png
   :scale: 15 %
-  :alt: map to buried treasure
+  :alt: Tausand logo
   :align: center
 
 Welcome to pyAbacus's documentation!
 ====================================
 
-pyAbacus was build to simplify the usage of Tausands_ tools.
+pyAbacus was built to simplify the usage of Tausand_ Abacus family of coincidence counters, providing a library aimed to interface these devices using Python coding.
 
-.. _Tausands: https://www.tausand.com/
+.. _Tausand: https://www.tausand.com/
 
 
 Contents

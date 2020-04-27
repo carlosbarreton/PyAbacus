@@ -188,4 +188,4 @@ TEST_ANSWER = "Tausand Abacus"
 DEVICES = {}
 ABACUS_SERIALS = {}
 
-DEBUG = True #False
+DEBUG = False
