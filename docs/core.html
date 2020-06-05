@@ -222,12 +222,30 @@
 <dl class="py method">
 <dt id="pyAbacus.core.CountersValues.getValue">
 <code class="sig-name descname">getValue</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channel</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getValue" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets a value of a single channel.</p>
+<dl class="simple">
+<dt>Example:</dt><dd><p>mycounters.getValue(‘A’)</p>
+</dd>
+<dt>Args:</dt><dd><p>channel: upper case characters indicating the channel to be read. e.g. ‘A’ for singles in input A, ‘AB’ for coincidences between inputs A and B.</p>
+</dd>
+<dt>Returns:</dt><dd><p>integer value of counts in the selected channel</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pyAbacus.core.CountersValues.getValues">
 <code class="sig-name descname">getValues</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">channels</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.CountersValues.getValues" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets an array of values of several channels.</p>
+<dl class="simple">
+<dt>Example:</dt><dd><p>mycounters.getValues({‘A’,’B’,’AB’})</p>
+</dd>
+<dt>Args:</dt><dd><p>channels: list of upper case characters indicating the channel to be read. e.g. ‘A’ for singles in input A, ‘AB’ for coincidences between inputs A and B.</p>
+</dd>
+<dt>Returns:</dt><dd><p>array of integer values of counts in the selected channels</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py method">
 <dt id="pyAbacus.core.CountersValues.getValuesFormatted">
@@ -451,13 +469,12 @@ List of valid ports, and its length.</p>
 <div><p>counters, counters_id = getAllCounters(‘COM3’)</p>
 <p>Reads data from the device in port ‘COM3’, and might return for example,</p>
 <div class="line-block">
-<div class="line">counters = {A:1023, B:1038, AB: 201}</div>
+<div class="line">counters = COUNTERS VALUES: 37</div>
 <div class="line-block">
-<div class="line">counters.A = 1023</div>
-<div class="line">counters.B = 1038</div>
-<div class="line">counters.AB = 201</div>
+<div class="line">A: 1023</div>
+<div class="line">B: 1038</div>
+<div class="line">AB: 201</div>
 </div>
-<div class="line">counters_id = 37</div>
 </div>
 <p>meaning that this is the 37th measurement made by the device, and the measurements were 1023 counts in A, 1038 counts in B, and 201 coincidences between A and B.</p>
 </div></blockquote>
