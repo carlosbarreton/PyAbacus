@@ -208,11 +208,10 @@ def getAllCounters(abacus_port):
 
         Reads data from the device in port 'COM3', and might return for example,
 
-        | counters = {A:1023, B:1038, AB: 201}
-        |    counters.A = 1023
-        |    counters.B = 1038
-        |    counters.AB = 201
-        | counters_id = 37
+        | counters = COUNTERS VALUES: 37
+        |    A: 1023
+        |    B: 1038
+        |    AB: 201
 
         meaning that this is the 37th measurement made by the device, and the measurements were 1023 counts in A, 1038 counts in B, and 201 coincidences between A and B.
 
@@ -626,7 +625,16 @@ class CountersValues(object):
         setattr(self, self.addresses[address], value)
 
     def getValue(self, channel):
-        """
+        """Gets a value of a single channel.
+
+        Example:
+            mycounters.getValue('A')
+
+        Args:
+            channel: upper case characters indicating the channel to be read. e.g. 'A' for singles in input A, 'AB' for coincidences between inputs A and B.
+
+        Returns:
+            integer value of counts in the selected channel
         """
         if self.n_channels == 2:
             msb = getattr(self, "%s_MSB" % channel) << 16
@@ -637,8 +645,18 @@ class CountersValues(object):
             return getattr(self, "%s" % channel)
 
     def getValues(self, channels):
+        """Gets an array of values of several channels.
+
+        Example:
+            mycounters.getValues({'A','B','AB'})
+
+        Args:
+            channels: list of upper case characters indicating the channel to be read. e.g. 'A' for singles in input A, 'AB' for coincidences between inputs A and B.
+
+        Returns:
+            array of integer values of counts in the selected channels
         """
-        """
+	
         return [self.getValue(c) for c in channels]
 
     def getValuesFormatted(self, channels):
