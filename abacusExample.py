@@ -1,4 +1,5 @@
 import pyAbacus as abacus
+import time
 
 print("********************")
 print("pyAbacus example")
@@ -40,13 +41,20 @@ print("\n********************")
 print("3. Write device settings\n")
 
 #Example of writing a new setting value
-abacus.setSetting(port,"sampling", 1300)	    #set sampling=5ms
+abacus.setSetting(port,"sampling", 2000)    #set sampling=2000ms
 value = abacus.getSetting(port,"sampling")  #read sampling
 print("current sampling=",value,"ms")
 
 abacus.setSetting(port,"delay_B", 20)	    #set delay_B=20ns
 value = abacus.getSetting(port,"delay_B")
 print("current delay_B=",value,"ns")
+
+abacus.setSetting(port,"coincidence_window", 50)	    #set coincidence_window=50ns
+value = abacus.getSetting(port,"coincidence_window")
+print("current coincidence_window=",value,"ns")
+
+print("waiting 2 seconds to complete the measurement")
+time.sleep(2); #wait sampling time (2s) to get a valid measurement
 
 print("\n********************")
 print("4. Read measurements from device\n")
@@ -56,7 +64,10 @@ counters, counters_id = abacus.getAllCounters(port)
 print("Measurements read from device, using getAllCounters method:")
 print("   counters_id =",counters_id)
 print("   counters =",counters)
-print("   counts in A:                    counters.A =",counters.A)
-print("   coincidences between A and B:   counters.AB =",counters.AB)
+print("   counters type=",type(counters))
+print("   counts in A:                    counters.getValue('A')  =",counters.getValue('A'))
+print("   coincidences between A and B:   counters.getValue('AB') =",counters.getValue('AB'))
+
+print("   counts in A and B:              counters.getValues({'A','B'}) =",counters.getValues({'A','B'}))
 
 abacus.close(port)			#close connection with device
