@@ -105,6 +105,34 @@ def getChannelsFromName(name):
     else:
         raise(AbacusError("Not a valid abacus."))
 
+def getResolutionFromName(name): #created on 2020-06-20
+    """Returns the device resolution, in nanoseconds, by reading the device name.
+
+    For example, if name="Tausand Abacus AB1004", a 5ns device, returns 5.
+    For example, if name="Tausand Abacus AB1504", a 2ns device, returns 2.
+    
+    Args:
+        name: idn string of the device.
+
+    Returns:
+        integer, number of input channels in device.
+        
+    Raises:
+        AbacusError: Not a valid abacus.
+        
+    """
+    if pyAbacus.constants.DEBUG:
+        print("Looking for resolution in name: "+name)
+    if "AB10" in name:    #AB1002, AB1004, AB1008
+        return 5
+    elif "AB15" in name:  #AB1502, AB1504, AB1508
+        return 2
+    elif "AB19" in name:  #AB1902, AB1904, AB1908
+        return 1
+    else:
+        raise(AbacusError("Not a valid abacus."))
+        return 5
+
 def writeSerial(abacus_port, command, address, data_16o32):
     """
 	Low level function. Writes in the specified serial port an instruction built based on command, memory address and data.
