@@ -500,7 +500,10 @@ def findDevices(print_on = True):
         try:
             serial = AbacusSerial(port.device)
             idn = serial.getIdn()
-            keys = list(renameDuplicates(keys + [port.device])) #keys = list(renameDuplicates(keys + [idn]))
+            if CURRENT_OS in {"win32","cygwin","msys"}: #if Windows, Windows/Cygwin or Windows/MSYS2
+                keys = list(renameDuplicates(keys + [port.device])) #port assignment for widnows machines: 'COMx'
+            else:
+                keys = list(renameDuplicates(keys + [idn])) #port assignment for linux machines: 'Tausand Abacus ABxxxx'
             ports[keys[-1]] = port.device
             serial.close()
         except AbacusError:
