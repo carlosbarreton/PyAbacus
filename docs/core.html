@@ -449,12 +449,13 @@
 <dt id="pyAbacus.core.findDevices">
 <code class="sig-prename descclassname">pyAbacus.core.</code><code class="sig-name descname">findDevices</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">print_on</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.findDevices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of connected and available devices that match with a Tausand Abacus.</p>
-<p>Scans all serial ports, and asks each of them their descriptions. When a device responds with a valid string, e.g. “Tausand Abacus AB1002”, the port is inlcuded in the final answer.</p>
+<p>Scans all serial ports, and asks each of them their descriptions. When a device responds with a valid string, e.g. “Tausand Abacus AB1002”, the port is inlcuded in the final answer. The constant DEVICES is updated with the dictionary of valid devices.</p>
 <dl class="simple">
 <dt>Args:</dt><dd><p>print_on: bool When True, prints devices information.</p>
 </dd>
 <dt>Returns:</dt><dd><p>ports, len(ports)
-List of valid ports, and its length.</p>
+List of valid ports, and its length.
+ports is a dictionary where the keys are the identifier strings of the devices (e.g. “Tausand Abacus AB1004”), and the values are the corresponding pyserial port (e.g. ‘COM8’, or ‘/dev/ttyACM0’).</p>
 </dd>
 </dl>
 </dd></dl>
@@ -561,6 +562,28 @@ List of valid ports, and its length.</p>
 <dt>Args:</dt><dd><p>abacus_port: device port.</p>
 </dd>
 <dt>Returns:</dt><dd><p>IDN string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyAbacus.core.getPhysicalPort">
+<code class="sig-prename descclassname">pyAbacus.core.</code><code class="sig-name descname">getPhysicalPort</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">abacus_port</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getPhysicalPort" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reads the physical port at the specified serial port.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="pyAbacus.core.getResolutionFromName">
+<code class="sig-prename descclassname">pyAbacus.core.</code><code class="sig-name descname">getResolutionFromName</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#pyAbacus.core.getResolutionFromName" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the device resolution, in nanoseconds, by reading the device name.</p>
+<p>For example, if name=”Tausand Abacus AB1004”, a 5ns device, returns 5.
+For example, if name=”Tausand Abacus AB1504”, a 2ns device, returns 2.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>name: idn string of the device.</p>
+</dd>
+<dt>Returns:</dt><dd><p>integer, number of input channels in device.</p>
+</dd>
+<dt>Raises:</dt><dd><p>AbacusError: Not a valid abacus.</p>
 </dd>
 </dl>
 </dd></dl>
