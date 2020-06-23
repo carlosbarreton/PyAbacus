@@ -105,7 +105,7 @@ def getChannelsFromName(name):
     else:
         raise(AbacusError("Not a valid abacus."))
 
-def getResolutionFromName(name): #created on 2020-06-20
+def getResolutionFromName(name): #created on 2020-06-20 by DGuzman
     """Returns the device resolution, in nanoseconds, by reading the device name.
 
     For example, if name="Tausand Abacus AB1004", a 5ns device, returns 5.
@@ -131,7 +131,7 @@ def getResolutionFromName(name): #created on 2020-06-20
         return 1
     else:
         raise(AbacusError("Not a valid abacus."))
-        return 5
+        return 5    
 
 def writeSerial(abacus_port, command, address, data_16o32):
     """
@@ -504,7 +504,7 @@ def setAllSettings(abacus_port, new_settings):
 def findDevices(print_on = True):
     """Returns a list of connected and available devices that match with a Tausand Abacus.
 
-    Scans all serial ports, and asks each of them their descriptions. When a device responds with a valid string, e.g. "Tausand Abacus AB1002", the port is inlcuded in the final answer.
+    Scans all serial ports, and asks each of them their descriptions. When a device responds with a valid string, e.g. "Tausand Abacus AB1002", the port is inlcuded in the final answer. The constant DEVICES is updated with the dictionary of valid devices.
 
     Args:
         print_on: bool When True, prints devices information.
@@ -512,6 +512,7 @@ def findDevices(print_on = True):
     Returns:
         ports, len(ports)
         List of valid ports, and its length.
+        ports is a dictionary where the keys are the identifier strings of the devices (e.g. "Tausand Abacus AB1004"), and the values are the corresponding pyserial port (e.g. 'COM8', or '/dev/ttyACM0').
     """
     global CURRENT_OS, DEVICES
     ports_objects = list(find_ports.comports())
@@ -528,11 +529,13 @@ def findDevices(print_on = True):
         try:
             serial = AbacusSerial(port.device)
             idn = serial.getIdn()
-            if CURRENT_OS in {"win32","cygwin","msys"}: #if Windows, Windows/Cygwin or Windows/MSYS2
-                keys = list(renameDuplicates(keys + [port.device])) #port assignment for widnows machines: 'COMx'
-            else:
-                keys = list(renameDuplicates(keys + [idn])) #port assignment for linux machines: 'Tausand Abacus ABxxxx'
-            ports[keys[-1]] = port.device
+            if CURRENT_OS in {"win32","cygwin","msys"}:
+                #in windows, COM port serves as unique identifier of device
+                keys = list(renameDuplicates(keys + [idn+" ("+port.device+")"])) #key assignment: 'Tausand Abacus ABxxxx (COMx)'
+            else: #linux
+                #in linux, serial number serves as unique identifier of device
+                keys = list(renameDuplicates(keys + [idn+" (S/N:"+port.serial_number+")"])) #key assignment: 'Tausand Abacus ABxxxx (S/N: serial_number)'
+            ports[keys[-1]] = port.device #value assignment: 'COMx' or '/dev/ttyxxx'
             serial.close()
         except AbacusError:
             pass
@@ -540,6 +543,13 @@ def findDevices(print_on = True):
             print(port.device, e)
     DEVICES = ports
     return ports, len(ports)
+
+def getPhysicalPort(abacus_port): #created on 2020-06-23 by DGuzman
+    """
+	Reads the physical port at the specified serial port.
+    """
+    global ABACUS_SERIALS
+    return ABACUS_SERIALS[abacus_port].port
 
 def renameDuplicates(old):
     """
@@ -566,7 +576,7 @@ def customLettersToBinary(letters):
     number = int('0b' + ''.join(numbers), base = 2)
     return number
 
-def setConstantsByResolution(resolution_ns): #(2020-04-23 by DGuzman)
+def setConstantsByResolution(resolution_ns): #created on 2020-04-23 by DGuzman
     global COINCIDENCE_WINDOW_MINIMUM_VALUE,COINCIDENCE_WINDOW_STEP_VALUE,DELAY_STEP_VALUE,SLEEP_STEP_VALUE
     if not resolution_ns in [1,2,5]:
         raise(BaseError("%d ns is not a valid resolution (1, 2, 5)."%resolution_ns))
