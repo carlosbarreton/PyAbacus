@@ -42,15 +42,14 @@ def open(abacus_port):
         COUNTERS_VALUES[abacus_port] = CountersValues(8)
         SETTINGS[abacus_port] = Settings8Ch()
 
-    #Set constants linked to device resolution (2020-04-23 by DGuzman)
+    #Set constants linked to device resolution. New on v1.1 (2020-04-23)
     name=serial.getIdn()
     if "AB19" in name:
         setConstantsByResolution(1) #resolution = 1ns; update constants
     elif "AB15" in name:
         setConstantsByResolution(2) #resolution = 2ns; update constants
     elif "AB10" in name:
-        pass #resolution = 5ns; keep default constants: do nothing
-        
+        setConstantsByResolution(2) #resolution = 5ns; update constants        
 
 def close(abacus_port):
     """
@@ -89,7 +88,7 @@ def getChannelsFromName(name):
         return 4
     elif "AB1008" in name:
         return 8
-    #new devices AB150x and 190x (2020-04-22 by DGuzman)
+    #new devices AB150x and 190x. New on v1.1 (2020-04-22)
     elif "AB1502" in name:
         return 2
     elif "AB1504" in name:
@@ -105,7 +104,7 @@ def getChannelsFromName(name):
     else:
         raise(AbacusError("Not a valid abacus."))
 
-def getResolutionFromName(name): #created on 2020-06-20 by DGuzman
+def getResolutionFromName(name): #new on v1.1 (2020-06-20)
     """Returns the device resolution, in nanoseconds, by reading the device name.
 
     For example, if name="Tausand Abacus AB1004", a 5ns device, returns 5.
@@ -529,7 +528,7 @@ def findDevices(print_on = True):
         try:
             serial = AbacusSerial(port.device)
             idn = serial.getIdn()
-            if CURRENT_OS in {"win32","cygwin","msys"}:
+            if CURRENT_OS in {"win32","cygwin","msys"}: #modified on v1.1
                 #in windows, COM port serves as unique identifier of device
                 keys = list(renameDuplicates(keys + [idn+" ("+port.device+")"])) #key assignment: 'Tausand Abacus ABxxxx (COMx)'
             else: #linux
@@ -544,7 +543,7 @@ def findDevices(print_on = True):
     DEVICES = ports
     return ports, len(ports)
 
-def getPhysicalPort(abacus_port): #created on 2020-06-23 by DGuzman
+def getPhysicalPort(abacus_port): #new on v1.1 (2020-06-23)
     """
 	Reads the physical port at the specified serial port.
     """
@@ -576,23 +575,27 @@ def customLettersToBinary(letters):
     number = int('0b' + ''.join(numbers), base = 2)
     return number
 
-def setConstantsByResolution(resolution_ns): #created on 2020-04-23 by DGuzman
+def setConstantsByResolution(resolution_ns): #new on v1.1 (2020-04-23)
     global COINCIDENCE_WINDOW_MINIMUM_VALUE,COINCIDENCE_WINDOW_STEP_VALUE,DELAY_STEP_VALUE,SLEEP_STEP_VALUE
     if not resolution_ns in [1,2,5]:
         raise(BaseError("%d ns is not a valid resolution (1, 2, 5)."%resolution_ns))
     else:
-        #keep the minimum value between the current constant and the input resolution
-        COINCIDENCE_WINDOW_MINIMUM_VALUE = min(resolution_ns,COINCIDENCE_WINDOW_MINIMUM_VALUE)
-        COINCIDENCE_WINDOW_STEP_VALUE = min(resolution_ns,COINCIDENCE_WINDOW_STEP_VALUE)
-        DELAY_STEP_VALUE = min(resolution_ns,DELAY_STEP_VALUE)
-        SLEEP_STEP_VALUE = min(resolution_ns,SLEEP_STEP_VALUE)
+        #update local variables linked to device resolution
+        COINCIDENCE_WINDOW_MINIMUM_VALUE = resolution_ns
+        COINCIDENCE_WINDOW_STEP_VALUE = resolution_ns
+        DELAY_STEP_VALUE = resolution_ns
+        SLEEP_STEP_VALUE = resolution_ns
+        #update constants in pyAbacus library
+        pyAbacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE = COINCIDENCE_WINDOW_MINIMUM_VALUE
+        pyAbacus.constants.COINCIDENCE_WINDOW_STEP_VALUE = COINCIDENCE_WINDOW_STEP_VALUE
+        pyAbacus.constants.DELAY_STEP_VALUE = DELAY_STEP_VALUE
+        pyAbacus.constants.SLEEP_STEP_VALUE = SLEEP_STEP_VALUE
     if pyAbacus.constants.DEBUG:
         print("Constant values linked to device resolution:")
         print("  COINCIDENCE_WINDOW_MINIMUM_VALUE:",COINCIDENCE_WINDOW_MINIMUM_VALUE)
         print("  COINCIDENCE_WINDOW_STEP_VALUE:",COINCIDENCE_WINDOW_STEP_VALUE)
         print("  DELAY_STEP_VALUE:",DELAY_STEP_VALUE)
-        print("  SLEEP_STEP_VALUE:",SLEEP_STEP_VALUE)        
-    
+        print("  SLEEP_STEP_VALUE:",SLEEP_STEP_VALUE)
 
 class CountersValues(object):
     """Keeps a set of measurements from counters within a device.
