@@ -49,7 +49,7 @@ def open(abacus_port):
     elif "AB15" in name:
         setConstantsByResolution(2) #resolution = 2ns; update constants
     elif "AB10" in name:
-        setConstantsByResolution(2) #resolution = 5ns; update constants        
+        setConstantsByResolution(5) #resolution = 5ns; update constants        
 
 def close(abacus_port):
     """
