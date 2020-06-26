@@ -1,6 +1,6 @@
-﻿Abacus Software is a suite of tools build to ensure your experience with Tausand’s light detectors becomes simplified.
+﻿pyAbacus was built to simplify the usage of Tausand Abacus family of coincidence counters, providing a library aimed to interface these devices using Python coding.
 
-Written in Python3, Abacus Software relies on the following modules:
+Written in Python3, pyAbacus relies on the following modules:
 
 pyqtgraph
 NumPy

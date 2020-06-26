@@ -21,6 +21,7 @@ import pyAbacus.constants
 
 def open(abacus_port):
     """
+        Opens a session to a Tausand Abacus device
     """
     global ABACUS_SERIALS, ADDRESS_DIRECTORIES, DEVICES
     if abacus_port in ABACUS_SERIALS.keys():
@@ -41,8 +42,18 @@ def open(abacus_port):
         COUNTERS_VALUES[abacus_port] = CountersValues(8)
         SETTINGS[abacus_port] = Settings8Ch()
 
+    #Set constants linked to device resolution. New on v1.1 (2020-04-23)
+    name=serial.getIdn()
+    if "AB19" in name:
+        setConstantsByResolution(1) #resolution = 1ns; update constants
+    elif "AB15" in name:
+        setConstantsByResolution(2) #resolution = 2ns; update constants
+    elif "AB10" in name:
+        setConstantsByResolution(5) #resolution = 5ns; update constants        
+
 def close(abacus_port):
     """
+        Closes a Tausand Abacus device session
     """
     global ABACUS_SERIALS, ADDRESS_DIRECTORIES
     if abacus_port in ABACUS_SERIALS.keys():
@@ -55,19 +66,75 @@ def close(abacus_port):
         del ADDRESS_DIRECTORIES[abacus_port]
 
 def getChannelsFromName(name):
+    """Returns the number of input channels by reading the device name.
+
+    For example, if name="Tausand Abacus AB1004", returns 4.
+    
+    Args:
+        name: idn string of the device.
+
+    Returns:
+        integer, number of input channels in device.
+        
+    Raises:
+        AbacusError: Not a valid abacus.
+        
     """
-    """
+    if pyAbacus.constants.DEBUG:
+        print("Looking for channels in name: "+name)
     if "AB1002" in name:
         return 2
     elif "AB1004" in name:
         return 4
     elif "AB1008" in name:
         return 8
+    #new devices AB150x and 190x. New on v1.1 (2020-04-22)
+    elif "AB1502" in name:
+        return 2
+    elif "AB1504" in name:
+        return 4
+    elif "AB1508" in name:
+        return 8
+    elif "AB1902" in name:
+        return 2
+    elif "AB1904" in name:
+        return 4
+    elif "AB1908" in name:
+        return 8
     else:
         raise(AbacusError("Not a valid abacus."))
 
+def getResolutionFromName(name): #new on v1.1 (2020-06-20)
+    """Returns the device resolution, in nanoseconds, by reading the device name.
+
+    For example, if name="Tausand Abacus AB1004", a 5ns device, returns 5.
+    For example, if name="Tausand Abacus AB1504", a 2ns device, returns 2.
+    
+    Args:
+        name: idn string of the device.
+
+    Returns:
+        integer, number of input channels in device.
+        
+    Raises:
+        AbacusError: Not a valid abacus.
+        
+    """
+    if pyAbacus.constants.DEBUG:
+        print("Looking for resolution in name: "+name)
+    if "AB10" in name:    #AB1002, AB1004, AB1008
+        return 5
+    elif "AB15" in name:  #AB1502, AB1504, AB1508
+        return 2
+    elif "AB19" in name:  #AB1902, AB1904, AB1908
+        return 1
+    else:
+        raise(AbacusError("Not a valid abacus."))
+        return 5    
+
 def writeSerial(abacus_port, command, address, data_16o32):
     """
+	Low level function. Writes in the specified serial port an instruction built based on command, memory address and data.
     """
     global ABACUS_SERIALS
 
@@ -76,12 +143,27 @@ def writeSerial(abacus_port, command, address, data_16o32):
 
 def readSerial(abacus_port):
     """
+	Reads bytes available at the specified serial port.
     """
     global ABACUS_SERIALS
     return ABACUS_SERIALS[abacus_port].readSerial()
 
 def dataStreamToDataArrays(input_string, chunck_size = 3):
-    """
+    """Builds data from string read on serial port.
+
+    Args:
+        input_string: stream of bytes to convert. Should have the appropriate format, as given by a Tausand Abacus device.
+
+        | chunck_size : integer, number of bytes per single data row.
+        |   -  Use chunck_size=3 for devices with inner 16-bit registers e.g. Tausand Abacus AB1002, where byte streams are: {address,MSB,LSB}.
+        |   -  Use chunck_size=5 for devices with inner 32-bit registers e.g. Tausand Abacus AB1004, where byte streams are: {address,MSB,2nd-MSB,2nd-LSB,LSB}.
+
+    Returns:
+        Two lists of integer values: addresses, data.
+
+    Raises:
+        AbacusError: Input string is not valid chunck size must either be 3 or 5.
+
     """
     input_string, n = input_string
     test = sum(input_string[2:]) & 0xFF # 8 bit
@@ -98,14 +180,25 @@ def dataStreamToDataArrays(input_string, chunck_size = 3):
         addresses = [chunck[0] for chunck in chuncks]
         data = [(chunck[1] << 8 * 3) | (chunck[2] << 8 * 2) | (chunck[3] << 8 * 1) | (chunck[4]) for chunck in chuncks]
     else:
-        raise(AbacusError("Input string is not valid chuck size must either be 3 or 5."))
+        raise(AbacusError("Input string is not valid chunck size must either be 3 or 5."))
     return addresses, data
     # else:
     #     if pyAbacus.constants.DEBUG: print("CheckSumError")
     #     return [], []
 
 def dataArraysToCounters(abacus_port, addresses, data):
-    """
+    """Saves in local memory the values of device's counters.
+
+    Args:
+        abacus_port: device port.
+
+        addresses: list of integers with device's register addresses.
+
+        data: list of integers with device's register values.
+
+    Returns:
+        List of counter values as registered within the device.
+
     """
     global COUNTERS_VALUES
     for i in range(len(addresses)):
@@ -113,7 +206,18 @@ def dataArraysToCounters(abacus_port, addresses, data):
     return COUNTERS_VALUES[abacus_port]
 
 def dataArraysToSettings(abacus_port, addresses, data):
-    """
+    """Saves in local memory the values of device's settings.
+
+    Args:
+        abacus_port: device port.
+
+        addresses: list of integers with device's register addresses.
+
+        data: list of integers with device's register values.
+
+    Returns:
+        List of settings as registered within the device.
+
     """
     global SETTINGS
     for i in range(len(addresses)):
@@ -121,7 +225,29 @@ def dataArraysToSettings(abacus_port, addresses, data):
     return SETTINGS[abacus_port]
 
 def getAllCounters(abacus_port):
-    """
+    """Reads all counters from a Tausand Abacus device.
+
+    With a single call, this function reads all the counters within the device, including single-channel counters, 2-fold coincidence counters and multi-fold coincidence counters.
+
+    Example:
+
+        counters, counters_id = getAllCounters('COM3')
+
+        Reads data from the device in port 'COM3', and might return for example,
+
+        | counters = COUNTERS VALUES: 37
+        |    A: 1023
+        |    B: 1038
+        |    AB: 201
+
+        meaning that this is the 37th measurement made by the device, and the measurements were 1023 counts in A, 1038 counts in B, and 201 coincidences between A and B.
+
+    Args:
+        abacus_port: device port.
+
+    Returns:
+        CountersValues class object including counter values as registered within the device, and the sequential number of the reading.
+
     """
     global COUNTERS_VALUES
     n = ABACUS_SERIALS[abacus_port].getNChannels()
@@ -179,7 +305,27 @@ def getFollowingCounters(abacus_port, counters):
     return COUNTERS_VALUES[abacus_port], getCountersID(abacus_port)
 
 def getAllSettings(abacus_port):
-    """
+    """Reads all settings from a Tausand Abacus device.
+
+    With a single call, this function reads all the settings within the device, including sampling time, coincidence window, delay per channel and sleep time per channel.
+
+    Example:
+        settings = getAllSettings('COM3')
+
+        Reads settings from the device in port 'COM3', and might return for example,
+
+        |  delay_A (ns): 0
+        |  delay_B (ns): 20
+        |  sleep_A (ns): 0
+        |  sleep_B (ns): 0
+        |  coincidence_window (ns): 10
+        |  sampling (ms): 1300
+
+    Args:
+        abacus_port: device port.
+
+    Returns:
+	Settings2ch, Settings4ch or Settings8ch class object including all setting values as registered within the device.
     """
     global SETTINGS
     def get(abacus_port, first, last, chunck_size):
@@ -215,7 +361,16 @@ def getAllSettings(abacus_port):
     return SETTINGS[abacus_port]
 
 def getSetting(abacus_port, setting):
-    """
+    """Get a single configuration setting within a Tausand Abacus.
+
+    Args:
+        abacus_port: device port
+
+        setting: name of the setting to be written. Valid strings are: "sampling", "coincidence_window", "delay_N", "sleep_N", where "N" refers to a channel (A,B,C,D,...).
+
+    Returns:
+        value for the setting. For "sampling", value in ms; for other settings, value in ns.
+
     """
     global SETTINGS
 
@@ -238,13 +393,38 @@ def getSetting(abacus_port, setting):
     return SETTINGS[abacus_port].getSetting(setting)
 
 def getIdn(abacus_port):
-    """
+    """Reads the identifier string model (IDN) from a Tausand Abacus.
+
+    Example:
+        myidn = getIdn('COM3')
+
+        | might return 
+        |     myidn = "Tausand Abacus AB1002"
+
+    Args:
+        abacus_port: device port.
+
+    Returns:
+        IDN string.
     """
     global ABACUS_SERIALS
     return ABACUS_SERIALS[abacus_port].getIdn()
 
 def getCountersID(abacus_port):
-    """
+    """Reads the *counters_id* (consecutive number of measurements) in a Tausand Abacus.
+
+    When a new configuration is set, *counters_id=0*, indicating no valid data is available.
+
+    Each time a new set of valid measurements is available, *counters_id* increments 1 unit.
+
+    *counters_id* overflows at 1 million, starting over at *counters_id=1*.
+
+    Args:
+        abacus_port: device port.
+
+    Returns:
+        integer, *counters_id* value.
+    
     """
     global COUNTERS_VALUES, ADDRESS_DIRECTORIES
 
@@ -259,7 +439,14 @@ def getCountersID(abacus_port):
     return COUNTERS_VALUES[abacus_port].getCountersID()
 
 def getTimeLeft(abacus_port):
-    """
+    """Reads the remaining time for the next measurement to be ready, in ms.
+
+    Args:
+        abacus_port: device port
+
+    Returns:
+        integer, in ms, of time left for next measurement.
+
     """
     global COUNTERS_VALUES, ADDRESS_DIRECTORIES
 
@@ -273,7 +460,20 @@ def getTimeLeft(abacus_port):
     return COUNTERS_VALUES[abacus_port].getTimeLeft()
 
 def setSetting(abacus_port, setting, value):
-    """
+    """Sets a configuration setting within a Tausand Abacus.
+
+    Example:
+        setSetting('COM3' , 'sampling' , 1300)
+
+        sets the sampling time to 1300 ms to a device in port 'COM3'.
+
+    Args:
+        abacus_port: device port
+
+        setting: name of the setting to be written. Valid strings are: "sampling", "coincidence_window", "delay_N", "sleep_N", where "N" refers to a channel (A,B,C,D,...).
+
+        value: new value for the setting. For "sampling", value in ms; for other settings, value in ns.
+
     """
     global SETTINGS
     settings = SETTINGS[abacus_port]
@@ -301,7 +501,17 @@ def setAllSettings(abacus_port, new_settings):
         raise(Exception("New settings are not a valid type."))
 
 def findDevices(print_on = True):
-    """
+    """Returns a list of connected and available devices that match with a Tausand Abacus.
+
+    Scans all serial ports, and asks each of them their descriptions. When a device responds with a valid string, e.g. "Tausand Abacus AB1002", the port is inlcuded in the final answer. The constant DEVICES is updated with the dictionary of valid devices.
+
+    Args:
+        print_on: bool When True, prints devices information.
+
+    Returns:
+        ports, len(ports)
+        List of valid ports, and its length.
+        ports is a dictionary where the keys are the identifier strings of the devices (e.g. "Tausand Abacus AB1004"), and the values are the corresponding pyserial port (e.g. 'COM8', or '/dev/ttyACM0').
     """
     global CURRENT_OS, DEVICES
     ports_objects = list(find_ports.comports())
@@ -318,8 +528,13 @@ def findDevices(print_on = True):
         try:
             serial = AbacusSerial(port.device)
             idn = serial.getIdn()
-            keys = list(renameDuplicates(keys + [idn]))
-            ports[keys[-1]] = port.device
+            if CURRENT_OS in {"win32","cygwin","msys"}: #modified on v1.1
+                #in windows, COM port serves as unique identifier of device
+                keys = list(renameDuplicates(keys + [idn+" ("+port.device+")"])) #key assignment: 'Tausand Abacus ABxxxx (COMx)'
+            else: #linux
+                #in linux, serial number serves as unique identifier of device
+                keys = list(renameDuplicates(keys + [idn+" (S/N:"+port.serial_number+")"])) #key assignment: 'Tausand Abacus ABxxxx (S/N: serial_number)'
+            ports[keys[-1]] = port.device #value assignment: 'COMx' or '/dev/ttyxxx'
             serial.close()
         except AbacusError:
             pass
@@ -327,6 +542,13 @@ def findDevices(print_on = True):
             print(port.device, e)
     DEVICES = ports
     return ports, len(ports)
+
+def getPhysicalPort(abacus_port): #new on v1.1 (2020-06-23)
+    """
+	Reads the physical port at the specified serial port.
+    """
+    global ABACUS_SERIALS
+    return ABACUS_SERIALS[abacus_port].port
 
 def renameDuplicates(old):
     """
@@ -353,12 +575,34 @@ def customLettersToBinary(letters):
     number = int('0b' + ''.join(numbers), base = 2)
     return number
 
+def setConstantsByResolution(resolution_ns): #new on v1.1 (2020-04-23)
+    global COINCIDENCE_WINDOW_MINIMUM_VALUE,COINCIDENCE_WINDOW_STEP_VALUE,DELAY_STEP_VALUE,SLEEP_STEP_VALUE
+    if not resolution_ns in [1,2,5]:
+        raise(BaseError("%d ns is not a valid resolution (1, 2, 5)."%resolution_ns))
+    else:
+        #update local variables linked to device resolution
+        COINCIDENCE_WINDOW_MINIMUM_VALUE = resolution_ns
+        COINCIDENCE_WINDOW_STEP_VALUE = resolution_ns
+        DELAY_STEP_VALUE = resolution_ns
+        SLEEP_STEP_VALUE = resolution_ns
+        #update constants in pyAbacus library
+        pyAbacus.constants.COINCIDENCE_WINDOW_MINIMUM_VALUE = COINCIDENCE_WINDOW_MINIMUM_VALUE
+        pyAbacus.constants.COINCIDENCE_WINDOW_STEP_VALUE = COINCIDENCE_WINDOW_STEP_VALUE
+        pyAbacus.constants.DELAY_STEP_VALUE = DELAY_STEP_VALUE
+        pyAbacus.constants.SLEEP_STEP_VALUE = SLEEP_STEP_VALUE
+    if pyAbacus.constants.DEBUG:
+        print("Constant values linked to device resolution:")
+        print("  COINCIDENCE_WINDOW_MINIMUM_VALUE:",COINCIDENCE_WINDOW_MINIMUM_VALUE)
+        print("  COINCIDENCE_WINDOW_STEP_VALUE:",COINCIDENCE_WINDOW_STEP_VALUE)
+        print("  DELAY_STEP_VALUE:",DELAY_STEP_VALUE)
+        print("  SLEEP_STEP_VALUE:",SLEEP_STEP_VALUE)
+
 class CountersValues(object):
-    """
+    """Keeps a set of measurements from counters within a device.
     """
     def __init__(self, n_channels):
         if not n_channels in [2, 4, 8]:
-            raise(BaseError("%d is not a valid number of channels (2, 4, 6)."%n_channels))
+            raise(BaseError("%d is not a valid number of channels (2, 4, 8)."%n_channels))
         letters = [chr(ord('A') + i) for i in range(n_channels)]
         channels = []
         for i in range(1, 3): # n_channels + 1
@@ -425,7 +669,16 @@ class CountersValues(object):
         setattr(self, self.addresses[address], value)
 
     def getValue(self, channel):
-        """
+        """Gets a value of a single channel.
+
+        Example:
+            mycounters.getValue('A')
+
+        Args:
+            channel: upper case characters indicating the channel to be read. e.g. 'A' for singles in input A, 'AB' for coincidences between inputs A and B.
+
+        Returns:
+            integer value of counts in the selected channel
         """
         if self.n_channels == 2:
             msb = getattr(self, "%s_MSB" % channel) << 16
@@ -436,8 +689,18 @@ class CountersValues(object):
             return getattr(self, "%s" % channel)
 
     def getValues(self, channels):
+        """Gets an array of values of several channels.
+
+        Example:
+            mycounters.getValues({'A','B','AB'})
+
+        Args:
+            channels: list of upper case characters indicating the channel to be read. e.g. 'A' for singles in input A, 'AB' for coincidences between inputs A and B.
+
+        Returns:
+            array of integer values of counts in the selected channels
         """
-        """
+	
         return [self.getValue(c) for c in channels]
 
     def getValuesFormatted(self, channels):
@@ -447,7 +710,7 @@ class CountersValues(object):
         return "(%d) "%self.getCountersID() + ", ".join(values)
 
     def getCountersID(self):
-        """
+        """Gets the *counters_id* (consecutive number of measurements) field from a set of measurements.
         """
         return self.counters_id
 
@@ -457,7 +720,7 @@ class CountersValues(object):
         self.counters_id = id
 
     def getTimeLeft(self):
-        """
+        """Gets the *time_left* (time in ms for next measurement to be available) field from a set of measurements.
         """
         return self.time_left
 
@@ -739,6 +1002,9 @@ class AbacusSerial(serial.Serial):
         self.flush()
         if self.testDevice():
             self.n_channels = getChannelsFromName(self.getIdn())
+            if pyAbacus.constants.DEBUG:
+                print(port, "answered: %s"%self.getIdn())
+                print(port, "number of channels: %d"%self.n_channels)
         else:
             if pyAbacus.constants.DEBUG:
                 print(port, "answered: %s"%self.getIdn())
@@ -753,6 +1019,7 @@ class AbacusSerial(serial.Serial):
 
     def findIdn(self):
         """
+        Requests the device for its string identificator (IDN) using serial port.
         """
         self.write(TEST_MESSAGE)
         self.idn = self.read(21).decode()
@@ -761,6 +1028,7 @@ class AbacusSerial(serial.Serial):
 
     def getIdn(self):
         """
+	Gets the device string identificator (IDN) from local memory.
         """
         return self.idn
 
@@ -803,7 +1071,7 @@ class AbacusSerial(serial.Serial):
         return [], 0
 
     def getNChannels(self):
-        """
+        """Gets the number of input channels in the device.
         """
         return self.n_channels
 

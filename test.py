@@ -8,7 +8,7 @@ port = list(ports.keys())[0]
 
 pa.open(port)
 
-pa.setSetting(port, 'delay_A', 55)
+pa.setSetting(port, 'delay_A', 60)
 
 ans = pa.getAllSettings(port)
 print(ans)
