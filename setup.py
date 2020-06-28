@@ -1,5 +1,4 @@
 import os
-import pyAbacus as pa
 from setuptools import setup
 
 def read(fname):
@@ -7,7 +6,7 @@ def read(fname):
 
 setup(
     name = "pyAbacus",
-    version = pa.__version__,
+    version = "1.1.0",
     author = "Juan Barbosa",
     author_email = "js.barbosa10@uniandes.edu.co",
     description = ('Build to simplify the usage of Tausands tools.'),
@@ -16,7 +15,7 @@ setup(
     url = "https://github.com/Tausand-dev/ReimaginedQuantum",
     packages=['pyAbacus'],
     install_requires=['pyserial'],
-    long_description=read('README'),
+    long_description=read('README.md'),
     classifiers=[
         "Development Status :: 1 - Planning",
         "Topic :: Utilities",
