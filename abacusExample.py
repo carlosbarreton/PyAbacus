@@ -85,4 +85,22 @@ else:
 
     print("   counts in A and B:              counters.getValues({'A','B'}) =",counters.getValues({'A','B'}))
 
+    #Example of multiple coincidences
+    if numchannels >= 4:
+        print("\n********************")
+        print("5. Working with multi-fold measurements\n")
+        value = abacus.getSetting(mydevice,"config_custom_c1")
+        print("Current settings for multi-channel coincidences: ",value)
+        value = counters.getValue("custom_c1")
+        print("Current value of multi-channel coincidences: ",value)
+        print("\nNew settings for multi-channel coincidences as BCD")
+        abacus.setSetting(mydevice,"config_custom_c1","BCD")#must use 3 or 4 letters. Valid options: ABC, ABD, ACD, BCD, ABCD
+        value = abacus.getSetting(mydevice,"config_custom_c1")
+        print("Current settings for multi-channel coincidences: ",value)
+        print("waiting 2 seconds to complete the measurement")
+        time.sleep(2); #wait sampling time (2s) to get a valid measurement
+        counters, counters_id = abacus.getAllCounters(mydevice)
+        value = counters.getValue("custom_c1")
+        print("Current value of multi-channel coincidences: ",value)
+
     abacus.close(mydevice)			#close connection with device
