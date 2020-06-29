@@ -12,6 +12,8 @@ setup(
     version="1.1.0",
     author="Juan Barbosa",
     author_email="js.barbosa10@uniandes.edu.co",
+    maintainer="David Guzman",
+    maintainer_email="da.guzman@outlook.com",
     description=('Build to simplify the usage of Tausands tools.'),
     license="GPL",
     keywords="example documentation tutorial",
@@ -20,7 +22,7 @@ setup(
     install_requires=['pyserial'],
     long_description=read('README.md'),
     classifiers=[
-        "Development Status :: 1 - Planning",
+        "Development Status :: 5 - Production/Stable",
         "Topic :: Utilities",
         "License :: OSI Approved :: GNU General Public License (GPL)",
     ],
