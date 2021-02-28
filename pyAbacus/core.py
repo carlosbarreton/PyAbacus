@@ -500,6 +500,198 @@ def setAllSettings(abacus_port, new_settings):
     else:
         raise(Exception("New settings are not a valid type."))
 
+def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wait_s=10): #new on v1.1.1 (2021-02-28)
+    """Waits for a new set of valid data to be available within a Tausand Abacus.
+
+    Args:
+        abacus_port: device port
+
+        print_on: bool When True, prints information of the waiting process
+
+        max_try: positive integer number, indicating the maximum trials to recover a communication issue
+
+        max_wait_s: timeout maximum number of seconds to wait. Once this time is reached, the function ends.
+
+    Returns:
+        0  if wait has suceeded.        
+        -1 if timeout has been reached.
+
+    """
+    begin_time = time.time()
+    id_start = 0
+    id_new = 0
+    time_to_wait_ms = 0
+
+    #max_try must be a positive integer
+    max_try = int(max_try)
+    if max_try < 1:
+        max_try = 1
+
+    #max_wait_s must be positive
+    if max_wait_s < 0:
+        max_wait_s = 0 #'0' means 'do not wait'
+
+    #Step 1: get initial ID
+    for attempt in range(max_try):    #retry up to 'max_try' times
+        try:
+            id_start = abacus.getCountersID(abacus_port)
+        except abacus.CheckSumError:
+            pass #data integrity error found: retry
+        except (abacus.serial.serialutil.SerialException,KeyError):
+            #serial communication error found: retry
+            abacus.close(abacus_port)
+            try:
+                abacus.open(abacus_port)   #self recovery for lost communication
+            except:
+                pass
+        except:
+            raise
+        else:
+            break #done, continue
+    if (attempt + 1) == max_try: ##if number of attempts reached maxretry
+        if print_on:
+            print("communication error after",max_try,"attempts.")
+        #abacus.close(mydevice)
+        #try:
+        #    abacus.open(mydevice)   #self recovery for lost communication
+        #except:
+        #    pass
+
+    new_and_valid_id = False
+    while (new_and_valid_id == False):
+        #Step 2: get time to wait
+        for attempt in range(max_try):    #retry up to 'maxretry' times
+            try:
+                time_to_wait_ms = abacus.getTimeLeft(abacus_port)   
+            except abacus.CheckSumError:
+                pass #data integrity error found: retry
+            except (abacus.serial.serialutil.SerialException,KeyError):
+                #serial communication error found: retry
+                abacus.close(abacus_port)
+                try:
+                    abacus.open(abacus_port)   #self recovery for lost communication
+                except:
+                    pass
+            except:
+                raise
+            else:
+                break #done, continue
+        if (attempt + 1) == max_try: ##if number of attempts has reached max_try
+            if print_on:
+                print("communication error after",max_try,"attempts.")
+            #abacus.close(mydevice)
+            #try:
+            #    abacus.open(mydevice)   #self recovery for lost communication
+            #except:
+            #    pass                
+            
+        #Step 3: wait up to 500ms
+        if time_to_wait_ms > 500:
+            time_to_wait_ms = 500
+        time.sleep(time_to_wait_ms/1000)
+        if print_on:
+            print(".", end='')
+
+        #Step 4: read new ID
+        for attempt in range(max_try):    #retry up to 'max_try' times
+            try:
+                id_new = abacus.getCountersID(abacus_port)
+            except abacus.CheckSumError:
+                pass #data integrity error found: retry
+            except (abacus.serial.serialutil.SerialException,KeyError):
+                #serial communication error found: retry
+                abacus.close(abacus_port)
+                try:
+                    abacus.open(abacus_port)   #self recovery for lost communication
+                except:
+                    pass
+            except:
+                raise
+            else:
+                break #done, continue
+        if (attempt + 1) == max_try: ##if number of attempts has reached max_try
+            if print_on:
+                print("communication error after",max_try,"attempts.")
+            #abacus.close(mydevice)
+            #try:
+            #    abacus.open(mydevice)   #self recovery for lost communication
+            #except:
+            #    pass
+            
+        #Step 5: validation
+        if id_new == 0:
+            id_start = 0  #this case avoids to wait double for id=1 after id=0
+        new_and_valid_id = (id_new > 0) and (id_start != id_new)
+
+        #Step 6: max timeout validation
+        if (time.time() - begin_time) > max_wait_s:
+            if print_on:
+                print(f'waited {time.time() - begin_time:.2f}s.',"Max_wait reached. Function ends.")
+            return -1
+
+    if print_on:
+        print(f'waited {time.time() - begin_time:.2f}s.',"Now data ID",id_new,"is available")    
+    return 0
+
+def waitAndGetValues(abacus_port,channels,print_on = False, max_try=6, max_wait_s=10):#new on v1.1.1 (2021-02-28)
+    """Waits and reads a new set of valid data from a Tausand Abacus.
+
+    Example:
+        waitAndGetValues('COM3',{'A','B','AC'})
+
+        Waits for a new set of valid data to be available, related to the sampling time of the device.
+        Then, reads the values of counts in A, B and the coincidences of AC, of the device connected in port COM3.
+        Returns the requested counters within an array.
+
+    Args:
+        abacus_port: device port
+
+        channels: list of upper case characters indicating the channel to be read. e.g. 'A' for singles in input A, 'AB' for coincidences between inputs A and B.
+
+        print_on: bool When True, prints information of the waiting process
+
+        max_try: positive integer number, indicating the maximum trials to recover a communication issue
+
+        max_wait_s: timeout maximum number of seconds to wait. Once this time is reached, the function ends.
+
+    Returns:
+        counters, counters_id
+
+        Set of read data, and their corresponding ID
+        
+        counters: array of integer values of counts in the selected channels
+
+        counters_id: ID (consecutive number of measurements) field from a set of measurements.
+
+    """
+    waitForAcquisitionComplete(abacus_port,print_on = print_on, max_try=max_try, max_wait_s=max_wait_s)
+    for attempt in range(max_try):    #retry up to 'maxretry' times
+        try:
+            counters, counters_id = abacus.getAllCounters(abacus_port)
+            values = counters.getValues(channels)
+            return values, counters_id
+        except abacus.CheckSumError:
+            pass #data integrity error found: retry
+        except (abacus.serial.serialutil.SerialException,KeyError):
+            #serial communication error found: retry
+            abacus.close(abacus_port)
+            try:
+                abacus.open(abacus_port)   #self recovery for lost communication
+            except:
+                pass
+        except:
+            raise
+        else:
+            break #done, continue
+    if (attempt + 1) == max_try: ##if number of attempts reached maxretry
+        print("communication error after",max_try,"attempts.")
+        #abacus.close(abacus_port)
+        #try:
+        #    abacus.open(abacus_port)   #self recovery for lost communication
+        #except:
+        #    pass
+    return -1
+
 def findDevices(print_on = True):
     """Returns a list of connected and available devices that match with a Tausand Abacus.
 
