@@ -637,11 +637,14 @@ def waitAndGetValues(abacus_port,channels,print_on = False, max_try=6, max_wait_
     """Waits and reads a new set of valid data from a Tausand Abacus.
 
     Example:
-        waitAndGetValues('COM3',{'A','B','AC'})
+        counters, counter_id = waitAndGetValues('COM3',{'A','B','AC'})
 
         Waits for a new set of valid data to be available, related to the sampling time of the device.
         Then, reads the values of counts in A, B and the coincidences of AC, of the device connected in port COM3.
-        Returns the requested counters within an array.
+        Returns the requested counters within an array, for example
+        | counters = [1023,1038,201]
+        | counter_id = 37
+        meaning that this is the 37th measurement made by the device, and the measurements were 1023 counts in A, 1038 counts in B, and 201 coincidences between A and C.
 
     Args:
         abacus_port: device port
