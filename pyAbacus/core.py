@@ -534,14 +534,14 @@ def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wai
     #Step 1: get initial ID
     for attempt in range(max_try):    #retry up to 'max_try' times
         try:
-            id_start = abacus.getCountersID(abacus_port)
-        except abacus.CheckSumError:
+            id_start = getCountersID(abacus_port)
+        except CheckSumError:
             pass #data integrity error found: retry
-        except (abacus.serial.serialutil.SerialException,KeyError):
+        except (serial.serialutil.SerialException,KeyError):
             #serial communication error found: retry
-            abacus.close(abacus_port)
+            close(abacus_port)
             try:
-                abacus.open(abacus_port)   #self recovery for lost communication
+                open(abacus_port)   #self recovery for lost communication
             except:
                 pass
         except:
@@ -562,14 +562,14 @@ def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wai
         #Step 2: get time to wait
         for attempt in range(max_try):    #retry up to 'maxretry' times
             try:
-                time_to_wait_ms = abacus.getTimeLeft(abacus_port)   
-            except abacus.CheckSumError:
+                time_to_wait_ms = getTimeLeft(abacus_port)   
+            except CheckSumError:
                 pass #data integrity error found: retry
-            except (abacus.serial.serialutil.SerialException,KeyError):
+            except (serial.serialutil.SerialException,KeyError):
                 #serial communication error found: retry
-                abacus.close(abacus_port)
+                close(abacus_port)
                 try:
-                    abacus.open(abacus_port)   #self recovery for lost communication
+                    open(abacus_port)   #self recovery for lost communication
                 except:
                     pass
             except:
@@ -595,14 +595,14 @@ def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wai
         #Step 4: read new ID
         for attempt in range(max_try):    #retry up to 'max_try' times
             try:
-                id_new = abacus.getCountersID(abacus_port)
-            except abacus.CheckSumError:
+                id_new = getCountersID(abacus_port)
+            except CheckSumError:
                 pass #data integrity error found: retry
-            except (abacus.serial.serialutil.SerialException,KeyError):
+            except (serial.serialutil.SerialException,KeyError):
                 #serial communication error found: retry
-                abacus.close(abacus_port)
+                close(abacus_port)
                 try:
-                    abacus.open(abacus_port)   #self recovery for lost communication
+                    open(abacus_port)   #self recovery for lost communication
                 except:
                     pass
             except:
@@ -670,16 +670,16 @@ def waitAndGetValues(abacus_port,channels,print_on = False, max_try=6, max_wait_
     waitForAcquisitionComplete(abacus_port,print_on = print_on, max_try=max_try, max_wait_s=max_wait_s)
     for attempt in range(max_try):    #retry up to 'maxretry' times
         try:
-            counters, counters_id = abacus.getAllCounters(abacus_port)
+            counters, counters_id = getAllCounters(abacus_port)
             values = counters.getValues(channels)
             return values, counters_id
-        except abacus.CheckSumError:
+        except CheckSumError:
             pass #data integrity error found: retry
-        except (abacus.serial.serialutil.SerialException,KeyError):
+        except (serial.serialutil.SerialException,KeyError):
             #serial communication error found: retry
-            abacus.close(abacus_port)
+            close(abacus_port)
             try:
-                abacus.open(abacus_port)   #self recovery for lost communication
+                open(abacus_port)   #self recovery for lost communication
             except:
                 pass
         except:
