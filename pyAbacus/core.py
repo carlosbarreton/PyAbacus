@@ -1019,8 +1019,8 @@ class Settings48Ch(SettingsBase):
         else:
             value = self.fromBitsToValue(bits)
             if timer == "sampling":
-                return value * 1000
-            return value * int(1e9)
+                return int(value * 1000) #improved in v1.1.1 to return int
+            return int(value * int(1e9)) #improved in v1.1.1 to return int
 
     def getAddressAndValue(self, timer):
         """
