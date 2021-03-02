@@ -97,13 +97,14 @@ else:
         print("Current settings for multi-channel coincidences: ",value)
         value = counters.getValue("custom_c1")
         print("Current value of multi-channel coincidences: ",value)
-        print("\nNew settings for multi-channel coincidences as BCD")
-        abacus.setSetting(mydevice,"config_custom_c1","BCD")#must use 3 or 4 letters. Valid options: ABC, ABD, ACD, BCD, ABCD
+        print("\nNew settings for multi-channel coincidences as ABC")
+        abacus.setSetting(mydevice,"config_custom_c1","ABC")#must use 3 or 4 letters. Valid options: ABC, ABD, ACD, BCD, ABCD
         value = abacus.getSetting(mydevice,"config_custom_c1")
         print("Current settings for multi-channel coincidences: ",value)
         print("waiting 2 seconds to complete the measurement")
         #  wait for a new set of data to be ready
-        abacus.waitForAcquisitionComplete(mydevice) #new function on v1.1.1        
+        abacus.waitForAcquisitionComplete(mydevice) #new function on v1.1.1
+        counters, counters_id = abacus.getAllCounters(mydevice)
         value = counters.getValue("custom_c1")
         print("Current value of multi-channel coincidences: ",value)
 
