@@ -548,19 +548,14 @@ def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wai
             raise
         else:
             break #done, continue
-    if (attempt + 1) == max_try: ##if number of attempts reached maxretry
+    if attempt == (max_try-1): #if number of attempts reached max_try
         if print_on:
-            print("communication error after",max_try,"attempts.")
-        #abacus.close(mydevice)
-        #try:
-        #    abacus.open(mydevice)   #self recovery for lost communication
-        #except:
-        #    pass
+            print("Communication error after",max_try,"attempts.")
 
     new_and_valid_id = False
     while (new_and_valid_id == False):
         #Step 2: get time to wait
-        for attempt in range(max_try):    #retry up to 'maxretry' times
+        for attempt in range(max_try):    #retry up to 'max_try' times
             try:
                 time_to_wait_ms = getTimeLeft(abacus_port)   
             except CheckSumError:
@@ -576,14 +571,9 @@ def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wai
                 raise
             else:
                 break #done, continue
-        if (attempt + 1) == max_try: ##if number of attempts has reached max_try
+        if attempt == (max_try-1): #if number of attempts has reached max_try
             if print_on:
-                print("communication error after",max_try,"attempts.")
-            #abacus.close(mydevice)
-            #try:
-            #    abacus.open(mydevice)   #self recovery for lost communication
-            #except:
-            #    pass                
+                print("Communication error after",max_try,"attempts.")
             
         #Step 3: wait up to 500ms
         if time_to_wait_ms > 500:
@@ -609,14 +599,9 @@ def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wai
                 raise
             else:
                 break #done, continue
-        if (attempt + 1) == max_try: ##if number of attempts has reached max_try
+        if attempt == (max_try-1): #if number of attempts has reached max_try
             if print_on:
-                print("communication error after",max_try,"attempts.")
-            #abacus.close(mydevice)
-            #try:
-            #    abacus.open(mydevice)   #self recovery for lost communication
-            #except:
-            #    pass
+                print("Communication error after",max_try,"attempts.")
             
         #Step 5: validation
         if id_new == 0:
@@ -626,11 +611,11 @@ def waitForAcquisitionComplete(abacus_port, print_on = False, max_try=6, max_wai
         #Step 6: max timeout validation
         if (time.time() - begin_time) > max_wait_s:
             if print_on:
-                print(f'waited {time.time() - begin_time:.2f}s.',"Max_wait reached. Function ends.")
+                print(f'Waited {time.time() - begin_time:.2f}s,',f'max_wait={max_wait_s:.2f}s reached.',"Function waitForAcquisitionComplete ends.")
             return -1
 
     if print_on:
-        print(f'waited {time.time() - begin_time:.2f}s.',"Now data ID",id_new,"is available")    
+        print(f'Waited {time.time() - begin_time:.2f}s.',"Now data ID",id_new,"is available")
     return 0
 
 def waitAndGetValues(abacus_port,channels,print_on = False, max_try=6, max_wait_s=10):#new on v1.1.1 (2021-02-28)
@@ -686,14 +671,10 @@ def waitAndGetValues(abacus_port,channels,print_on = False, max_try=6, max_wait_
             raise
         else:
             break #done, continue
-    if (attempt + 1) == max_try: ##if number of attempts reached maxretry
-        print("communication error after",max_try,"attempts.")
-        #abacus.close(abacus_port)
-        #try:
-        #    abacus.open(abacus_port)   #self recovery for lost communication
-        #except:
-        #    pass
-    return -1
+    if attempt == (max_try-1): #if number of attempts reached max_try
+        print("Communication error after",max_try,"attempts.")
+
+    return [], -1
 
 def findDevices(print_on = True):
     """Returns a list of connected and available devices that match with a Tausand Abacus.
