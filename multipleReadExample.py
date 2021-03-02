@@ -1,8 +1,12 @@
 import pyAbacus as abacus
 import time
 
-samples_to_read = 18000 #18000: 5h*3600s. change this parameter to set how many samples to read
+samples_to_read = 60 #change this parameter to set how many samples to read
 my_sampling_time_ms = 1000 #change this parameter to set your sampling time. 1000=1s.
+
+###define the desired channels to be read. Some examples:
+#channels_to_read = ['A','B','AB']   #for a 2 channel device
+channels_to_read = ['A','B','C','AB','AC','custom_c1'] #custom_c1 corresponds to a multi-fold mesurement, to be configured, e.g. 'ABC'
 
 print("******************************")
 print("pyAbacus multiple read example")
@@ -19,8 +23,9 @@ else:
     print(ports)
 
     mydevice = list(ports.keys())[0] #get first available device
-    abacus.open(mydevice)	    #open connection with device
+    abacus.open(mydevice)	     #open connection with device
 
+    #get and print some properties of the connected device:
     print("\nConnected to the following device:")
     idnstring = abacus.getIdn(mydevice)
     numchannels = abacus.getChannelsFromName(mydevice)
@@ -34,27 +39,48 @@ else:
 
     #########
     print("\n2. Write and read new settings\n")
-    #write settings:
+    #write settings, using pyAbacus setSetting function:
     abacus.setSetting(mydevice,"sampling", my_sampling_time_ms) #set sampling, in milliseconds (default: 1000ms)
     abacus.setSetting(mydevice,"coincidence_window", 50)    #set coincidence_window=50ns
     abacus.setSetting(mydevice,"delay_A", 0)	            #set delay_A=0ns
     abacus.setSetting(mydevice,"delay_B", 0)	            #set delay_B=0ns
     abacus.setSetting(mydevice,"sleep_A", 0)	            #set sleep_A=0ns
     abacus.setSetting(mydevice,"sleep_B", 0)	            #set sleep_B=0ns
-    #TO DO: incluir multiples coinc
+    if numchannels > 2:
+        abacus.setSetting(mydevice,"delay_C", 0)	        #set delay_C=0ns
+        abacus.setSetting(mydevice,"sleep_C", 0)	        #set sleep_C=0ns
+        #configure multi-fold coincidences ('custom_c1'):
+        abacus.setSetting(mydevice,"config_custom_c1","ABC")    #must use 3 or 4 letters. Valid options: ABC, ABD, ACD, BCD, ABCD
 
-    #read settings:
-    current_settings = abacus.getAllSettings(mydevice)
+    #read settings, using pyAbacus getAllSettings function:
+    #a retry routine has been implemented, as an example to handle exceptions
+    max_attempts=5
+    for attempt in range(max_attempts):
+        try:
+            current_settings = abacus.getAllSettings(mydevice)
+        except abacus.CheckSumError:
+            print("Data integrity error in getAllSettings: missing or wrong bits. Retry.")
+            pass #retry
+        except (abacus.serial.serialutil.SerialException,KeyError):
+            print("Communication error in getAllSettings: device might be disconnected or turned off.")
+        except:
+            print("Unexpected error. Device connection closed.")
+            abacus.close(mydevice)  #close connection with device
+            raise
+        else:
+            break #done, continue
     print(current_settings)
+        
 
-
-    
-    print("\nFunction test: waitAndGetValues")
-
+    #########
+    print("\n3. Create file")
+    #define constant strings:
     date_time_string = time.strftime("%Y-%m-%d_%H%M%S", time.localtime())
-    column_headers = ["PC time","countersID","A","B","AB"];
-    
-    myfile = open("data_multipleReadExample_"+date_time_string+".txt", "a")
+    column_headers = ["PC time","countersID"]+channels_to_read;
+    file_name = "data_multipleReadExample_"+date_time_string+".txt"
+    #create file and write headers:
+    myfile = open(file_name, "a")
+    print("File",file_name,"has been created")
     myfile.write('multipleReadExample\n')
     myfile.write('-------------------\n')
     myfile.write('Begin time: '+date_time_string+'\n')
@@ -64,13 +90,15 @@ else:
     myfile.write(str(column_headers))
     myfile.write("\n")
 
+    #########
+    print("\n4. Multiple read using pyAbacus waitAndGetValues function begins")
     full_data=[]
     for sample in range(samples_to_read):
         print(sample,end=',')
         try:
-            my_data, my_id = abacus.waitAndGetValues(mydevice,{'A','B','AB'},print_on=True) #for debug purposes, turn print_on=True; by default is False.
+            my_data, my_id = abacus.waitAndGetValues(mydevice,channels_to_read,print_on=True) #for debug purposes, turn print_on=True; by default is False.
             my_data.insert(0,my_id) #prepend my_id to my_data
-            my_data.insert(0,time.time()) #prepend current PC time to my_data
+            my_data.insert(0,round(time.time(),3)) #prepend current PC time to my_data
             print(my_data)
             full_data.append(my_data)
             myfile.write(str(my_data))
@@ -83,10 +111,11 @@ else:
             print("Unexpected error. Device connection closed. File access closed.")
             abacus.close(mydevice)  #close connection with device
             myfile.close()          #close file
-            raise
-        
+            raise        
         
     abacus.close(mydevice)  #close connection with device
     myfile.close()          #close file
     print("\nFull set of data is:")
+    print(column_headers)
     print(full_data)
+    print("\nExample done.")
