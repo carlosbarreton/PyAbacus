@@ -1,7 +1,7 @@
 import pyAbacus as abacus
 import time
 
-samples_to_read = 60 #change this parameter to set how many samples to read
+samples_to_read = 10 #change this parameter to set how many samples to read
 my_sampling_time_ms = 1000 #change this parameter to set your sampling time. 1000=1s.
 
 ###define the desired channels to be read. Some examples:
@@ -46,7 +46,7 @@ else:
     abacus.setSetting(mydevice,"delay_B", 0)	            #set delay_B=0ns
     abacus.setSetting(mydevice,"sleep_A", 0)	            #set sleep_A=0ns
     abacus.setSetting(mydevice,"sleep_B", 0)	            #set sleep_B=0ns
-    if numchannels > 2:
+    if numchannels >= 4:
         abacus.setSetting(mydevice,"delay_C", 0)	        #set delay_C=0ns
         abacus.setSetting(mydevice,"sleep_C", 0)	        #set sleep_C=0ns
         #configure multi-fold coincidences ('custom_c1'):
@@ -94,7 +94,7 @@ else:
     print("\n4. Multiple read using pyAbacus waitAndGetValues function begins")
     full_data=[]
     for sample in range(samples_to_read):
-        print(sample,end=',')
+        print(sample+1,'/',samples_to_read,sep='',end=',')
         try:
             my_data, my_id = abacus.waitAndGetValues(mydevice,channels_to_read,print_on=True) #for debug purposes, turn print_on=True; by default is False.
             my_data.insert(0,my_id) #prepend my_id to my_data

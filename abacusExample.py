@@ -5,7 +5,6 @@ print("********************")
 print("pyAbacus example")
 print("********************")
 print("1. Find devices and establish a connection\n")
-
 ports, n = abacus.findDevices() #required to scan devices before opening a connection
 
 if n==0:
@@ -69,12 +68,17 @@ else:
     print("current coincidence_window=",value,"ns")
 
     print("waiting 2 seconds to complete the measurement")
-    time.sleep(2); #wait sampling time (2s) to get a valid measurement
+    #  wait for a new set of data to be ready
+    abacus.waitForAcquisitionComplete(mydevice) #new function on v1.1.1
+    #  alternative to wait
+    #time.sleep(2); #wait sampling time (2s) to get a valid measurement
 
     print("\n********************")
     print("4. Read measurements from device\n")
 
     #Example of reading measurements from counters
+    
+    #  read data from device
     counters, counters_id = abacus.getAllCounters(mydevice)
     print("Measurements read from device, using getAllCounters method:")
     print("   counters_id =",counters_id)
@@ -83,7 +87,7 @@ else:
     print("   counts in A:                    counters.getValue('A')  =",counters.getValue('A'))
     print("   coincidences between A and B:   counters.getValue('AB') =",counters.getValue('AB'))
 
-    print("   counts in A and B:              counters.getValues({'A','B'}) =",counters.getValues({'A','B'}))
+    print("   counts in A and B:              counters.getValues(['A','B']) =",counters.getValues(['A','B']))
 
     #Example of multiple coincidences
     if numchannels >= 4:
@@ -98,8 +102,8 @@ else:
         value = abacus.getSetting(mydevice,"config_custom_c1")
         print("Current settings for multi-channel coincidences: ",value)
         print("waiting 2 seconds to complete the measurement")
-        time.sleep(2); #wait sampling time (2s) to get a valid measurement
-        counters, counters_id = abacus.getAllCounters(mydevice)
+        #  wait for a new set of data to be ready
+        abacus.waitForAcquisitionComplete(mydevice) #new function on v1.1.1        
         value = counters.getValue("custom_c1")
         print("Current value of multi-channel coincidences: ",value)
 
