@@ -4,9 +4,9 @@ import time
 samples_to_read = 10 #change this parameter to set how many samples to read
 my_sampling_time_ms = 1000 #change this parameter to set your sampling time. 1000=1s.
 
-###define the desired channels to be read. Some examples:
-#channels_to_read = ['A','B','AB']   #for a 2 channel device
-channels_to_read = ['A','B','C','AB','AC','custom_c1'] #custom_c1 corresponds to a multi-fold mesurement, to be configured, e.g. 'ABC'
+#define the desired channels to be read. Some examples:
+channels_to_read_2ch = ['A','B','AB']   #for a 2 channel device
+channels_to_read_4ch = ['A','B','C','AB','AC','custom_c1'] #custom_c1 corresponds to a multi-fold mesurement, to be configured, e.g. 'ABC'
 
 print("******************************")
 print("pyAbacus multiple read example")
@@ -36,6 +36,12 @@ else:
     print("   device identifier string =",idnstring)
     print("   number of channels =",numchannels)
     print("   resolution =",resolution,"ns")
+
+    ## select channels_to_read depending on the number of channels of the connected device    
+    if numchannels >= 4:
+        channels_to_read = channels_to_read_4ch
+    else:
+        channels_to_read = channels_to_read_2ch
 
     #########
     print("\n2. Write and read new settings\n")
@@ -93,6 +99,7 @@ else:
     #########
     print("\n4. Multiple read using pyAbacus waitAndGetValues function begins")
     full_data=[]
+    print(column_headers)
     for sample in range(samples_to_read):
         print(sample+1,'/',samples_to_read,sep='',end=',')
         try:
