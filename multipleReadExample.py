@@ -1,3 +1,9 @@
+"""multipleReadExample
+    
+    Reads continuous samples from a Tausand Abacus device, using pyAbacus library.
+    Implements error handling to self-recover.
+    Writes measured data in a plain text file.
+"""
 import pyAbacus as abacus
 import time
 
@@ -64,6 +70,7 @@ else:
     for attempt in range(max_attempts):
         try:
             current_settings = abacus.getAllSettings(mydevice)
+            print(current_settings)
         except abacus.CheckSumError:
             print("Data integrity error in getAllSettings: missing or wrong bits. Retry.")
             pass #retry
@@ -75,7 +82,7 @@ else:
             raise
         else:
             break #done, continue
-    print(current_settings)
+    
         
 
     #########

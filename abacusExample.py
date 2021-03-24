@@ -1,3 +1,7 @@
+"""abacusExample
+    
+    Several simple examples showing how to communicate with a Tausand Abacus device using pyAbacus library.
+"""
 import pyAbacus as abacus
 import time
 
