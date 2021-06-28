@@ -709,7 +709,12 @@ def findDevices(print_on = True):
                 keys = list(renameDuplicates(keys + [idn+" ("+port.device+")"])) #key assignment: 'Tausand Abacus ABxxxx (COMx)'
             else: #linux
                 #in linux, serial number serves as unique identifier of device
-                keys = list(renameDuplicates(keys + [idn+" (S/N:"+port.serial_number+")"])) #key assignment: 'Tausand Abacus ABxxxx (S/N: serial_number)'
+                if port.serial_number is None: #new on 2021-06-28
+					#if no serial number exist, assign only by IDN string
+                    keys = list(renameDuplicates(keys + [idn])) #key assignment: 'Tausand Abacus ABxxxx'
+                else:
+					#if a serial number exist, add it to the description
+                    keys = list(renameDuplicates(keys + [idn+" (S/N:"+port.serial_number+")"])) #key assignment: 'Tausand Abacus ABxxxx (S/N: serial_number)'
             ports[keys[-1]] = port.device #value assignment: 'COMx' or '/dev/ttyxxx'
             serial.close()
         except AbacusError:
